@@ -31,6 +31,7 @@ services:
 
   web:
     build: .
+    user: root
     ports:
       - "8000:8000"
     volumes:
@@ -54,14 +55,12 @@ services:
       sh -c "
         mkdir -p /app/app/logs &&
         chown -R appuser:appuser /app/app/logs &&
-        cd /app/app &&
-        python manage.py migrate &&
-        python manage.py seed_all &&
-        gunicorn --bind 0.0.0.0:8000 --workers 3 --reload core.wsgi:application
+        exec su - appuser -c 'cd /app/app && python manage.py migrate && python manage.py seed_all && gunicorn --bind 0.0.0.0:8000 --workers 3 --reload core.wsgi:application'
       "
 
   worker:
     build: .
+    user: root
     volumes:
       - .:/app
       - media_volume:/app/media
@@ -80,12 +79,12 @@ services:
       sh -c "
         mkdir -p /app/app/logs &&
         chown -R appuser:appuser /app/app/logs &&
-        cd /app/app &&
-        celery -A core worker -l info
+        exec su - appuser -c 'cd /app/app && celery -A core worker -l info'
       "
 
   beat:
     build: .
+    user: root
     volumes:
       - .:/app
     environment:
@@ -103,8 +102,7 @@ services:
       sh -c "
         mkdir -p /app/app/logs &&
         chown -R appuser:appuser /app/app/logs &&
-        cd /app/app &&
-        celery -A core beat -l info
+        exec su - appuser -c 'cd /app/app && celery -A core beat -l info'
       "
 
 volumes:
