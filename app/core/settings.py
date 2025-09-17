@@ -335,5 +335,3 @@ LOGGING = {
 }
 
 # Create logs directory
-logs_dir = BASE_DIR / 'logs'
-logs_dir.mkdir(exist_ok=True)
