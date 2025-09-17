@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Dashboard" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Dashboard" %}</h1>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Welcome to Psychological Assessments Platform" %}</h5>
+                <p class="card-text">
+                    {% trans "This is a comprehensive multi-tenant SaaS platform for psychological assessments and Individual Development Plan (PDI) management." %}
+                </p>
+                
+                {% if current_tenant %}
+                    <div class="alert alert-info">
+                        <strong>{% trans "Current Organization:" %}</strong> {{ current_tenant.name }} ({{ current_tenant.get_kind_display }})
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <strong>{% trans "No Organization Selected" %}</strong>
+                        <p>{% trans "Please select or create an organization to get started." %}</p>
+                        <a href="{% url 'organizations:list' %}" class="btn btn-primary">{% trans "View Organizations" %}</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if user.is_authenticated and current_tenant %}
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-people"></i> {% trans "Team Members" %}
+                </h5>
+                <p class="card-text">{% trans "Manage your organization's team members and roles." %}</p>
+                <a href="{% url 'organizations:members' current_tenant.pk %}" class="btn btn-outline-primary">{% trans "View Members" %}</a>
+            </div>
+        </div>
+    </div>
+    
+    {% if current_tenant.is_company %}
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-clipboard-check"></i> {% trans "Assessments" %}
+                </h5>
+                <p class="card-text">{% trans "Create and manage psychological assessments for your team." %}</p>
+                <a href="{% url 'assessments:list' %}" class="btn btn-outline-primary">{% trans "View Assessments" %}</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-graph-up"></i> {% trans "PDI Plans" %}
+                </h5>
+                <p class="card-text">{% trans "Individual Development Plans for employee growth." %}</p>
+                <a href="{% url 'pdi:list' %}" class="btn btn-outline-primary">{% trans "View PDI Plans" %}</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if current_tenant.is_recruiter %}
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-person-badge"></i> {% trans "Candidates" %}
+                </h5>
+                <p class="card-text">{% trans "Manage candidates and their assessment results." %}</p>
+                <a href="{% url 'recruiting:candidates' %}" class="btn btn-outline-primary">{% trans "View Candidates" %}</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-briefcase"></i> {% trans "Jobs" %}
+                </h5>
+                <p class="card-text">{% trans "Manage job openings and requirements." %}</p>
+                <a href="{% url 'recruiting:jobs' %}" class="btn btn-outline-primary">{% trans "View Jobs" %}</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
