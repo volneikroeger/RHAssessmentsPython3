@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     libpango1.0-dev \
     libgdk-pixbuf2.0-dev \
     libffi-dev \
+    libopenjp2-7-dev \
     shared-mime-info \
     fonts-liberation \
     fonts-dejavu-core \
