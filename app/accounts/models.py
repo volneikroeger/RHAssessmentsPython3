@@ -5,7 +5,7 @@ import uuid
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from fernet_fields import EncryptedTextField, EncryptedEmailField
+from core.fields import EncryptedTextField, EncryptedEmailField
 from .managers import UserManager
 
 

@@ -5,7 +5,7 @@ import uuid
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
-from fernet_fields import EncryptedTextField
+from core.fields import EncryptedTextField
 from core.utils import generate_tenant_slug
 
 User = get_user_model()
