@@ -34,6 +34,7 @@ THIRD_PARTY_APPS = [
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.microsoft',
     'corsheaders',
+    'django_celery_beat',
 ]
 
 LOCAL_APPS = [
@@ -93,26 +94,13 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 # Database
-DATABASE_URL = config('DATABASE_URL', default=None)
-if DATABASE_URL:
-    # Use DATABASE_URL as primary source for database configuration
-    import dj_database_url
-    DATABASES['default'] = dj_database_url.parse(DATABASE_URL)
-else:
-    # Fallback to individual environment variables
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DB_NAME', default='assessments_db'),
-            'USER': config('DB_USER', default='postgres'),
-            'PASSWORD': config('DB_PASSWORD', default='postgres'),
-            'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default='5432'),
-            'OPTIONS': {
-                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            }
-        }
-    }
+DATABASE_URL = config('DATABASE_URL', default='postgresql://postgres:postgres@localhost:5432/assessments_db')
+
+# Always use dj_database_url to parse the DATABASE_URL
+import dj_database_url
+DATABASES = {
+    'default': dj_database_url.parse(DATABASE_URL)
+}
 
 # Custom User Model
 AUTH_USER_MODEL = 'accounts.User'
@@ -164,7 +152,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Redis Configuration
-REDIS_URL = config('REDIS_URL', default='redis://localhost:6379/0')
+REDIS_URL = config('REDIS_URL', default='redis://redis:6379/0')
 
 # Celery Configuration
 CELERY_BROKER_URL = REDIS_URL
