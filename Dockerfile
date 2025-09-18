@@ -39,6 +39,9 @@ RUN poetry install --no-dev
 # Copy application code
 COPY . .
 
+# Create logs directory
+RUN mkdir -p /app/logs
+
 # Create static and media directories
 RUN mkdir -p /app/static /app/media
 
