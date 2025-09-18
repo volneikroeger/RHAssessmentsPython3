@@ -10,6 +10,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
+    postgresql-client \
     libcairo2-dev \
     libpango1.0-dev \
     libgdk-pixbuf-xlib-2.0-dev \
@@ -42,8 +43,8 @@ COPY . .
 # Create logs directory
 RUN mkdir -p /app/logs
 
-# Create static and media directories
-RUN mkdir -p /app/static /app/media
+# Create static and media directories (aligned with Django BASE_DIR)
+RUN mkdir -p /app/app/static /app/app/media
 
 # Collect static files
 RUN python app/manage.py collectstatic --noinput --clear

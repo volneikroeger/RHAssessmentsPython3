@@ -36,8 +36,8 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
-      - static_volume:/app/static
-      - media_volume:/app/media
+      - static_volume:/app/app/static
+      - media_volume:/app/app/media
     environment:
       - DEBUG=True
       - SECRET_KEY=your-secret-key-here-change-in-production
@@ -55,7 +55,17 @@ services:
       sh -c "
         mkdir -p /app/app/logs &&
         chown -R appuser:appuser /app/app/logs &&
-        exec su - appuser -c 'cd /app/app && python manage.py migrate && python manage.py seed_all && gunicorn --bind 0.0.0.0:8000 --workers 3 --reload core.wsgi:application'
+        exec su - appuser -c 'cd /app/app && 
+          echo \"Waiting for database to be ready...\" &&
+          while ! pg_isready -h db -p 5432 -U postgres; do
+            echo \"Database is unavailable - sleeping\"
+            sleep 1
+          done &&
+          echo \"Database is up - executing migrations\" &&
+          python manage.py migrate &&
+          python manage.py seed_all &&
+          echo \"Starting Gunicorn server\" &&
+          gunicorn --bind 0.0.0.0:8000 --workers 3 --reload core.wsgi:application'
       "
 
   worker:
@@ -63,7 +73,7 @@ services:
     user: root
     volumes:
       - .:/app
-      - media_volume:/app/media
+      - media_volume:/app/app/media
     environment:
       - DEBUG=True
       - SECRET_KEY=your-secret-key-here-change-in-production
@@ -79,7 +89,14 @@ services:
       sh -c "
         mkdir -p /app/app/logs &&
         chown -R appuser:appuser /app/app/logs &&
-        exec su - appuser -c 'cd /app/app && celery -A core worker -l info'
+        exec su - appuser -c 'cd /app/app && 
+          echo \"Waiting for database to be ready...\" &&
+          while ! pg_isready -h db -p 5432 -U postgres; do
+            echo \"Database is unavailable - sleeping\"
+            sleep 1
+          done &&
+          echo \"Database is up - starting Celery worker\" &&
+          celery -A core worker -l info'
       "
 
   beat:
@@ -102,7 +119,14 @@ services:
       sh -c "
         mkdir -p /app/app/logs &&
         chown -R appuser:appuser /app/app/logs &&
-        exec su - appuser -c 'cd /app/app && celery -A core beat -l info'
+        exec su - appuser -c 'cd /app/app && 
+          echo \"Waiting for database to be ready...\" &&
+          while ! pg_isready -h db -p 5432 -U postgres; do
+            echo \"Database is unavailable - sleeping\"
+            sleep 1
+          done &&
+          echo \"Database is up - starting Celery beat\" &&
+          celery -A core beat -l info'
       "
 
 volumes:
