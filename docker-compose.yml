@@ -55,11 +55,16 @@ services:
       sh -c "
         mkdir -p /app/app/logs &&
         chown -R appuser:appuser /app/app/logs &&
-          python app/manage.py migrate &&
-          python app/manage.py seed_all &&
-          echo \"Starting Gunicorn server\" &&
-          cd app &&
-          gunicorn --bind 0.0.0.0:8000 --workers 3 --reload core.wsgi:application'
+        while ! pg_isready -h db -p 5432 -U postgres; do
+          echo 'Waiting for database...'
+          sleep 2
+        done &&
+        echo 'Database is up - executing migrations' &&
+        python app/manage.py migrate &&
+        python app/manage.py seed_all &&
+        echo 'Starting Gunicorn server' &&
+        cd app &&
+        gunicorn --bind 0.0.0.0:8000 --workers 3 --reload core.wsgi:application
       "
 
   worker:
@@ -83,7 +88,12 @@ services:
       sh -c "
         mkdir -p /app/app/logs &&
         chown -R appuser:appuser /app/app/logs &&
-          celery -A app.core worker -l info'
+        while ! pg_isready -h db -p 5432 -U postgres; do
+          echo 'Waiting for database...'
+          sleep 2
+        done &&
+        echo 'Database is up - starting Celery worker' &&
+        celery -A app.core worker -l info
       "
 
   beat:
@@ -106,7 +116,12 @@ services:
       sh -c "
         mkdir -p /app/app/logs &&
         chown -R appuser:appuser /app/app/logs &&
-          celery -A app.core beat -l info'
+        while ! pg_isready -h db -p 5432 -U postgres; do
+          echo 'Waiting for database...'
+          sleep 2
+        done &&
+        echo 'Database is up - starting Celery beat' &&
+        celery -A app.core beat -l info
       "
 
 volumes:
