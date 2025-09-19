@@ -100,8 +100,11 @@ services:
   beat:
     build: .
     user: root
+    working_dir: /usr/src/app/app
     volumes:
-      - .:/app
+      - ./app:/usr/src/app/app
+      - ./pyproject.toml:/usr/src/app/pyproject.toml
+      - ./poetry.lock:/usr/src/app/poetry.lock
     environment:
       - DEBUG=True
       - SECRET_KEY=your-secret-key-here-change-in-production
@@ -115,14 +118,13 @@ services:
         condition: service_healthy
     command: >
       sh -c "
-        mkdir -p /app/app/logs &&
-        chown -R appuser:appuser /app/app/logs &&
+        mkdir -p /usr/src/app/app/logs &&
+        chown -R appuser:appuser /usr/src/app/app/logs &&
         while ! pg_isready -h db -p 5432 -U postgres; do
           echo 'Waiting for database...'
           sleep 2
         done &&
         echo 'Database is up - starting Celery beat' &&
-        cd /app/app &&
         celery -A core beat -l info
       "
 

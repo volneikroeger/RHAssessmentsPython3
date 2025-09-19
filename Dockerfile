@@ -25,35 +25,35 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Create app directory
-WORKDIR /app
+WORKDIR /usr/src/app
 
 # Install Poetry
 RUN pip install poetry==1.7.1
 RUN poetry config virtualenvs.create false
 
 # Copy dependency files
-COPY pyproject.toml poetry.lock ./
+COPY pyproject.toml poetry.lock /usr/src/app/
 
 # Install dependencies
 RUN poetry install --no-dev
 
 # Copy application code
-COPY . .
+COPY . /usr/src/app/
 
 # Create logs directory
-RUN mkdir -p /app/logs
+RUN mkdir -p /usr/src/app/app/logs
 
 # Create static and media directories (aligned with Django BASE_DIR)
-RUN mkdir -p /app/app/static /app/app/media
+RUN mkdir -p /usr/src/app/app/static /usr/src/app/app/media
 
 # Collect static files
-RUN python app/manage.py collectstatic --noinput --clear
+RUN python /usr/src/app/app/manage.py collectstatic --noinput --clear
 
 # Create non-root user
 RUN useradd --create-home --shell /bin/bash appuser && \
-    chown -R appuser:appuser /app
+    chown -R appuser:appuser /usr/src/app
 USER appuser
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--chdir", "/app/app", "core.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--chdir", "/usr/src/app/app", "core.wsgi:application"]
