@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Terms of Service" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="mb-4">{% trans "Terms of Service" %}</h1>
+            
+            <div class="card">
+                <div class="card-body">
+                    <p class="text-muted">{% trans "Last updated: December 2024" %}</p>
+                    
+                    <h3>{% trans "1. Acceptance of Terms" %}</h3>
+                    <p>
+                        {% trans "By accessing and using this psychological assessments platform, you accept and agree to be bound by the terms and provision of this agreement." %}
+                    </p>
+                    
+                    <h3>{% trans "2. Use License" %}</h3>
+                    <p>
+                        {% trans "Permission is granted to temporarily access the platform for organizational and educational purposes only. This is the grant of a license, not a transfer of title." %}
+                    </p>
+                    
+                    <h3>{% trans "3. Disclaimer" %}</h3>
+                    <div class="alert alert-warning">
+                        <strong>{% trans "Professional Use Only:" %}</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>{% trans "This platform is designed for organizational and educational use only" %}</li>
+                            <li>{% trans "It is NOT for clinical diagnosis or therapeutic intervention" %}</li>
+                            <li>{% trans "It is NOT a substitute for licensed psychological services" %}</li>
+                            <li>{% trans "It is NOT validated for medical or psychiatric purposes" %}</li>
+                        </ul>
+                    </div>
+                    
+                    <h3>{% trans "4. Limitations" %}</h3>
+                    <p>
+                        {% trans "In no event shall the platform or its suppliers be liable for any damages arising out of the use or inability to use the materials on this platform." %}
+                    </p>
+                    
+                    <h3>{% trans "5. Accuracy of Materials" %}</h3>
+                    <p>
+                        {% trans "The materials appearing on this platform could include technical, typographical, or photographic errors. We do not warrant that any of the materials are accurate, complete, or current." %}
+                    </p>
+                    
+                    <h3>{% trans "6. User Responsibilities" %}</h3>
+                    <p>
+                        {% trans "Users and organizations are responsible for:" %}
+                    </p>
+                    <ul>
+                        <li>{% trans "Appropriate use within their legal jurisdiction" %}</li>
+                        <li>{% trans "Compliance with local privacy and employment laws" %}</li>
+                        <li>{% trans "Proper interpretation of assessment results" %}</li>
+                        <li>{% trans "Ethical application of psychological insights" %}</li>
+                    </ul>
+                    
+                    <h3>{% trans "7. Regulatory Compliance" %}</h3>
+                    <p>
+                        {% trans "This platform complies with Brazilian Psychology Council (CFP) guidelines for non-clinical use and follows psychological testing standards where applicable." %}
+                    </p>
+                    
+                    <h3>{% trans "8. Modifications" %}</h3>
+                    <p>
+                        {% trans "We may revise these terms of service at any time without notice. By using this platform, you are agreeing to be bound by the then current version of these terms of service." %}
+                    </p>
+                    
+                    <h3>{% trans "9. Contact Information" %}</h3>
+                    <p>
+                        {% trans "For questions about these Terms of Service, please contact your organization's administrator or our support team." %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

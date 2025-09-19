@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Privacy Policy" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="mb-4">{% trans "Privacy Policy" %}</h1>
+            
+            <div class="card">
+                <div class="card-body">
+                    <p class="text-muted">{% trans "Last updated: December 2024" %}</p>
+                    
+                    <h3>{% trans "1. Information We Collect" %}</h3>
+                    <p>
+                        {% trans "We collect information you provide directly to us, such as when you create an account, complete assessments, or contact us for support." %}
+                    </p>
+                    
+                    <h3>{% trans "2. How We Use Your Information" %}</h3>
+                    <p>
+                        {% trans "We use the information we collect to provide, maintain, and improve our services, including psychological assessments and development planning tools." %}
+                    </p>
+                    
+                    <h3>{% trans "3. Information Sharing" %}</h3>
+                    <p>
+                        {% trans "We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, except as described in this policy." %}
+                    </p>
+                    
+                    <h3>{% trans "4. Data Security" %}</h3>
+                    <p>
+                        {% trans "We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction." %}
+                    </p>
+                    
+                    <h3>{% trans "5. Your Rights" %}</h3>
+                    <p>
+                        {% trans "You have the right to access, update, or delete your personal information. You may also request a copy of your data or withdraw consent for processing." %}
+                    </p>
+                    
+                    <h3>{% trans "6. LGPD/GDPR Compliance" %}</h3>
+                    <p>
+                        {% trans "We comply with applicable data protection laws, including Brazil's LGPD and the EU's GDPR, ensuring your privacy rights are protected." %}
+                    </p>
+                    
+                    <h3>{% trans "7. Contact Us" %}</h3>
+                    <p>
+                        {% trans "If you have any questions about this Privacy Policy, please contact us through your organization's administrator or our support channels." %}
+                    </p>
+                    
+                    <div class="alert alert-info mt-4">
+                        <strong>{% trans "Important Notice:" %}</strong>
+                        {% trans "This platform is designed for organizational and educational use only. It is not intended for clinical diagnosis or therapeutic intervention." %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

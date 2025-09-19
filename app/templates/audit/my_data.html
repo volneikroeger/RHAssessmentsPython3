@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "My Data" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h1 class="mb-4">{% trans "My Data" %}</h1>
+            
+            <div class="card">
+                <div class="card-body">
+                    <h3>{% trans "Data Subject Rights" %}</h3>
+                    <p>
+                        {% trans "Under LGPD/GDPR, you have the following rights regarding your personal data:" %}
+                    </p>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="bi bi-download"></i> {% trans "Export My Data" %}
+                                    </h5>
+                                    <p class="card-text">
+                                        {% trans "Download a copy of all your personal data stored in our system." %}
+                                    </p>
+                                    <button class="btn btn-primary" disabled>
+                                        {% trans "Request Export" %}
+                                    </button>
+                                    <small class="text-muted d-block mt-2">
+                                        {% trans "Feature coming soon" %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="bi bi-trash"></i> {% trans "Delete My Data" %}
+                                    </h5>
+                                    <p class="card-text">
+                                        {% trans "Request permanent deletion of your personal data from our system." %}
+                                    </p>
+                                    <button class="btn btn-danger" disabled>
+                                        {% trans "Request Deletion" %}
+                                    </button>
+                                    <small class="text-muted d-block mt-2">
+                                        {% trans "Feature coming soon" %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <strong>{% trans "Current Data Processing:" %}</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>{% trans "Personal information (name, email, profile data)" %}</li>
+                            <li>{% trans "Assessment responses and results" %}</li>
+                            <li>{% trans "Organization membership information" %}</li>
+                            <li>{% trans "Usage logs and audit trails" %}</li>
+                        </ul>
+                    </div>
+                    
+                    <h3 class="mt-4">{% trans "Contact for Data Requests" %}</h3>
+                    <p>
+                        {% trans "For immediate data requests or questions about your privacy rights, please contact your organization's administrator or our data protection officer." %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
