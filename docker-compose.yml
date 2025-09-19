@@ -32,6 +32,7 @@ services:
   web:
     build: .
     user: root
+    working_dir: /app/app
     ports:
       - "8000:8000"
     volumes:
@@ -61,7 +62,7 @@ services:
         done &&
         echo 'Database is up - executing migrations' &&
         python manage.py makemigrations accounts &&
-        cd /app/app &&
+        python manage.py migrate accounts &&
         python manage.py migrate &&
         python manage.py seed_all &&
         echo 'Starting Gunicorn server' &&
@@ -71,6 +72,7 @@ services:
   worker:
     build: .
     user: root
+    working_dir: /app/app
     volumes:
       - .:/app
       - media_volume:/app/app/media
@@ -91,21 +93,16 @@ services:
         chown -R appuser:appuser /app/app/logs &&
         while ! pg_isready -h db -p 5432 -U postgres; do
           echo 'Waiting for database...'
-          sleep 2
         done &&
-        echo 'Database is up - starting Celery worker' &&
-        cd /app/app &&
-        celery -A core.celery worker -l info
       "
 
   beat:
     build: .
     user: root
-    working_dir: /usr/src/app
+    working_dir: /app/app
     volumes:
-      - ./app:/usr/src/app/app
-      - ./pyproject.toml:/usr/src/app/pyproject.toml
-      - ./poetry.lock:/usr/src/app/poetry.lock
+      - .:/app
+      - media_volume:/app/app/media
     environment:
       - DEBUG=True
       - SECRET_KEY=your-secret-key-here-change-in-production
@@ -119,8 +116,8 @@ services:
         condition: service_healthy
     command: >
       sh -c "
-        mkdir -p /usr/src/app/app/logs &&
-        chown -R appuser:appuser /usr/src/app/app/logs &&
+        mkdir -p /app/app/logs &&
+        chown -R appuser:appuser /app/app/logs &&
         while ! pg_isready -h db -p 5432 -U postgres; do
           echo 'Waiting for database...'
           sleep 2
