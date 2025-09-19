@@ -60,6 +60,7 @@ services:
           sleep 2
         done &&
         echo 'Database is up - executing migrations' &&
+        python manage.py makemigrations accounts &&
         cd /app/app &&
         python manage.py migrate &&
         python manage.py seed_all &&
@@ -125,8 +126,10 @@ services:
           sleep 2
         done &&
         echo 'Database is up - starting Celery beat' &&
-        celery -A app.core.celery beat -l info
-        celery -A app.core.celery worker -l info
+        cd /usr/src/app/app &&
+        celery -A core.celery beat -l info
+        cd /usr/src/app/app &&
+        celery -A core.celery worker -l info
 
 volumes:
   postgres_data:
