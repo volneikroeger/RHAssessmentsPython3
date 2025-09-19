@@ -60,10 +60,10 @@ services:
           sleep 2
         done &&
         echo 'Database is up - executing migrations' &&
-        python app/manage.py migrate &&
-        python app/manage.py seed_all &&
+        cd /app/app &&
+        python manage.py migrate &&
+        python manage.py seed_all &&
         echo 'Starting Gunicorn server' &&
-        cd app &&
         gunicorn --bind 0.0.0.0:8000 --workers 3 --reload core.wsgi:application
       "
 
@@ -93,7 +93,8 @@ services:
           sleep 2
         done &&
         echo 'Database is up - starting Celery worker' &&
-        celery -A app.core worker -l info
+        cd /app/app &&
+        celery -A core worker -l info
       "
 
   beat:
@@ -121,7 +122,8 @@ services:
           sleep 2
         done &&
         echo 'Database is up - starting Celery beat' &&
-        celery -A app.core beat -l info
+        cd /app/app &&
+        celery -A core beat -l info
       "
 
 volumes:
