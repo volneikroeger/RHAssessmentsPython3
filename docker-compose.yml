@@ -128,7 +128,7 @@ services:
         PYTHONPATH=. celery -A core.celery beat -l info
         cd /usr/src/app/app &&
         PYTHONPATH=. celery -A core.celery worker -l info
-
+       "
 volumes:
   postgres_data:
   redis_data:
