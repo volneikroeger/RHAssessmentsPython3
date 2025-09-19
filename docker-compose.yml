@@ -115,7 +115,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: >
+    command: |
       sh -c "
         mkdir -p /app/app/logs &&
         chown -R appuser:appuser /app/app/logs &&
