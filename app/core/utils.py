@@ -6,11 +6,6 @@ from django.conf import settings
 from django.http import HttpRequest
 
 
-def context_processors():
-    """Collection of context processors."""
-    pass
-
-
 def tenant_context(request: HttpRequest) -> Dict[str, Any]:
     """Add tenant information to template context."""
     return {

@@ -88,13 +88,16 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: >
+    command: |
       sh -c "
         mkdir -p /app/app/logs &&
         chown -R appuser:appuser /app/app/logs &&
         while ! pg_isready -h db -p 5432 -U postgres; do
           echo 'Waiting for database...'
+          sleep 2
         done &&
+        echo 'Database is up - starting Celery worker' &&
+        PYTHONPATH=. celery -A core.celery worker -l info
       "
 
   beat:
