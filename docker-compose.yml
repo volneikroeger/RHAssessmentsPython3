@@ -94,7 +94,7 @@ services:
         done &&
         echo 'Database is up - starting Celery worker' &&
         cd /app/app &&
-        celery -A core worker -l info
+        celery -A core.celery worker -l info
       "
 
   beat:
@@ -125,7 +125,7 @@ services:
           sleep 2
         done &&
         echo 'Database is up - starting Celery beat' &&
-        celery -A core beat -l info
+        celery -A core.celery beat -l info
       "
 
 volumes:

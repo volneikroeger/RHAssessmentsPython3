@@ -18,6 +18,7 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv(
 
 # Application definition
 DJANGO_APPS = [
+    'accounts',  # Custom user model must come first
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -38,7 +39,6 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    'accounts',
     'organizations',
     'assessments',
     'pdi',
