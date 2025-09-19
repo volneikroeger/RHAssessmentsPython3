@@ -64,8 +64,8 @@ services:
         python manage.py makemigrations accounts &&
         python manage.py migrate accounts &&
         python manage.py migrate account &&
+        python manage.py migrate django_celery_beat &&
         python manage.py migrate &&
-        python manage.py seed_all &&
         echo 'Starting Gunicorn server' &&
         gunicorn --bind 0.0.0.0:8000 --workers 3 --reload core.wsgi:application
       "
