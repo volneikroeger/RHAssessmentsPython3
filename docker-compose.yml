@@ -63,6 +63,7 @@ services:
         echo 'Database is up - executing migrations' &&
         python manage.py makemigrations accounts &&
         python manage.py migrate accounts &&
+        python manage.py migrate account &&
         python manage.py migrate &&
         python manage.py seed_all &&
         echo 'Starting Gunicorn server' &&
@@ -124,9 +125,9 @@ services:
         done &&
         echo 'Database is up - starting Celery beat' &&
         cd /usr/src/app/app &&
-        celery -A core.celery beat -l info
+        PYTHONPATH=. celery -A core.celery beat -l info
         cd /usr/src/app/app &&
-        celery -A core.celery worker -l info
+        PYTHONPATH=. celery -A core.celery worker -l info
 
 volumes:
   postgres_data:
