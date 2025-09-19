@@ -4,6 +4,7 @@ Django settings for psychological assessments SaaS platform.
 import os
 from pathlib import Path
 from decouple import config, Csv
+from django.urls import reverse_lazy
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -187,7 +188,7 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_USER_MODEL_EMAIL_FIELD = 'email'
 
-LOGIN_REDIRECT_URL = '/dashboard/'
+LOGIN_REDIRECT_URL = reverse_lazy('dashboard:home')
 LOGOUT_REDIRECT_URL = '/'
 
 # Social Auth Configuration
