@@ -4,7 +4,7 @@ A comprehensive multi-tenant SaaS platform for psychological assessments and Ind
 
 ## 🏗️ Architecture Overview
 
-### Technology Stack
+### Technology Stack ###
 - **Backend**: Django 5.x with PostgreSQL 16
 - **Frontend**: Django Templates + htmx + Alpine.js
 - **Charts**: Chart.js for radar and bar charts
