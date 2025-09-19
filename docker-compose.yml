@@ -55,16 +55,10 @@ services:
       sh -c "
         mkdir -p /app/app/logs &&
         chown -R appuser:appuser /app/app/logs &&
-        exec su - appuser -c 'cd /app/app && 
-          echo \"Waiting for database to be ready...\" &&
-          while ! pg_isready -h db -p 5432 -U postgres; do
-            echo \"Database is unavailable - sleeping\"
-            sleep 1
-          done &&
-          echo \"Database is up - executing migrations\" &&
-          python manage.py migrate &&
-          python manage.py seed_all &&
+          python app/manage.py migrate &&
+          python app/manage.py seed_all &&
           echo \"Starting Gunicorn server\" &&
+          cd app &&
           gunicorn --bind 0.0.0.0:8000 --workers 3 --reload core.wsgi:application'
       "
 
@@ -89,14 +83,7 @@ services:
       sh -c "
         mkdir -p /app/app/logs &&
         chown -R appuser:appuser /app/app/logs &&
-        exec su - appuser -c 'cd /app/app && 
-          echo \"Waiting for database to be ready...\" &&
-          while ! pg_isready -h db -p 5432 -U postgres; do
-            echo \"Database is unavailable - sleeping\"
-            sleep 1
-          done &&
-          echo \"Database is up - starting Celery worker\" &&
-          celery -A core worker -l info'
+          celery -A app.core worker -l info'
       "
 
   beat:
@@ -119,14 +106,7 @@ services:
       sh -c "
         mkdir -p /app/app/logs &&
         chown -R appuser:appuser /app/app/logs &&
-        exec su - appuser -c 'cd /app/app && 
-          echo \"Waiting for database to be ready...\" &&
-          while ! pg_isready -h db -p 5432 -U postgres; do
-            echo \"Database is unavailable - sleeping\"
-            sleep 1
-          done &&
-          echo \"Database is up - starting Celery beat\" &&
-          celery -A core beat -l info'
+          celery -A app.core beat -l info'
       "
 
 volumes:
