@@ -100,7 +100,7 @@ services:
   beat:
     build: .
     user: root
-    working_dir: /usr/src/app/app
+    working_dir: /usr/src/app
     volumes:
       - ./app:/usr/src/app/app
       - ./pyproject.toml:/usr/src/app/pyproject.toml
@@ -125,8 +125,8 @@ services:
           sleep 2
         done &&
         echo 'Database is up - starting Celery beat' &&
-        celery -A core.celery beat -l info
-      "
+        celery -A app.core.celery beat -l info
+        celery -A app.core.celery worker -l info
 
 volumes:
   postgres_data:
