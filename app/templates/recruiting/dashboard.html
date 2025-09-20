@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Recruiting Dashboard" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Recruiting Dashboard" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group">
+            <a href="{% url 'recruiting:candidate_create' %}" class="btn btn-success me-2">
+                <i class="bi bi-person-plus"></i> {% trans "Add Candidate" %}
+            </a>
+            <a href="{% url 'recruiting:job_create' %}" class="btn btn-primary">
+                <i class="bi bi-briefcase-fill"></i> {% trans "Create Job" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Overview -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-primary">{{ stats.active_jobs }}</h4>
+                <small class="text-muted">{% trans "Active Jobs" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-success">{{ stats.total_candidates }}</h4>
+                <small class="text-muted">{% trans "Total Candidates" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-info">{{ stats.active_applications }}</h4>
+                <small class="text-muted">{% trans "Active Applications" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-warning">{{ stats.placements_this_month }}</h4>
+                <small class="text-muted">{% trans "Placements This Month" %}</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Personal Statistics -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "My Performance" %}</h5>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-primary">{{ my_jobs }}</h4>
+                            <small class="text-muted">{% trans "My Active Jobs" %}</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">{{ my_candidates }}</h4>
+                        <small class="text-muted">{% trans "My Candidates" %}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Quick Actions" %}</h5>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'recruiting:candidate_create' %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-person-plus"></i> {% trans "Add New Candidate" %}
+                    </a>
+                    <a href="{% url 'recruiting:job_create' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-briefcase-fill"></i> {% trans "Create New Job" %}
+                    </a>
+                    <a href="{% url 'recruiting:client_create' %}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-building"></i> {% trans "Add New Client" %}
+                    </a>
+                    <a href="{% url 'recruiting:candidate_import' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-upload"></i> {% trans "Import Candidates" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Jobs -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Recent Active Jobs" %}</h5>
+                
+                {% for job in recent_jobs %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">
+                                <a href="{% url 'recruiting:job_detail' job.pk %}" class="text-decoration-none">
+                                    {{ job.title }}
+                                </a>
+                            </h6>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <small class="text-muted">{{ job.client.name }}</small>
+                                {% if job.status == 'OPEN' %}
+                                    <span class="badge bg-success">{{ job.get_status_display }}</span>
+                                {% elif job.status == 'IN_PROGRESS' %}
+                                    <span class="badge bg-primary">{{ job.get_status_display }}</span>
+                                {% endif %}
+                                
+                                {% if job.priority == 'URGENT' %}
+                                    <span class="badge bg-danger">{{ job.get_priority_display }}</span>
+                                {% elif job.priority == 'HIGH' %}
+                                    <span class="badge bg-warning">{{ job.get_priority_display }}</span>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">
+                                <i class="bi bi-people"></i> {{ job.applications_count }} {% trans "applications" %}
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted">{{ job.posted_date|date:"M d" }}</small>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-briefcase display-4 text-muted"></i>
+                        <p class="mt-2 text-muted">{% trans "No active jobs." %}</p>
+                        <a href="{% url 'recruiting:job_create' %}" class="btn btn-primary">
+                            {% trans "Create Your First Job" %}
+                        </a>
+                    </div>
+                {% endfor %}
+                
+                {% if recent_jobs %}
+                    <div class="text-center mt-3">
+                        <a href="{% url 'recruiting:job_list' %}" class="btn btn-outline-primary btn-sm">
+                            {% trans "View All Jobs" %}
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Applications -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Recent Applications" %}</h5>
+                
+                {% for application in recent_applications %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">
+                                <a href="{% url 'recruiting:candidate_detail' application.candidate.pk %}" class="text-decoration-none">
+                                    {{ application.candidate.full_name }}
+                                </a>
+                            </h6>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <small class="text-muted">{{ application.job.title }}</small>
+                                {% if application.status == 'QUALIFIED' %}
+                                    <span class="badge bg-success">{{ application.get_status_display }}</span>
+                                {% elif application.status == 'SCREENING' %}
+                                    <span class="badge bg-warning">{{ application.get_status_display }}</span>
+                                {% elif application.status == 'INTERVIEWED' %}
+                                    <span class="badge bg-info">{{ application.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ application.get_status_display }}</span>
+                                {% endif %}
+                            </div>
+                            {% if application.fit_score %}
+                                <small class="text-muted">
+                                    <i class="bi bi-graph-up"></i> {% trans "Fit:" %} {{ application.fit_score|floatformat:0 }}%
+                                </small>
+                            {% endif %}
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted">{{ application.applied_date|date:"M d" }}</small>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-person-badge display-4 text-muted"></i>
+                        <p class="mt-2 text-muted">{% trans "No recent applications." %}</p>
+                    </div>
+                {% endfor %}
+                
+                {% if recent_applications %}
+                    <div class="text-center mt-3">
+                        <a href="{% url 'recruiting:candidate_list' %}" class="btn btn-outline-primary btn-sm">
+                            {% trans "View All Candidates" %}
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Interviews -->
+{% if upcoming_interviews %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-calendar-check"></i> {% trans "Upcoming Interviews" %}
+                    </h5>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Candidate" %}</th>
+                                    <th>{% trans "Job" %}</th>
+                                    <th>{% trans "Type" %}</th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Interviewer" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for interview in upcoming_interviews %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'recruiting:candidate_detail' interview.application.candidate.pk %}" class="text-decoration-none">
+                                                {{ interview.application.candidate.full_name }}
+                                            </a>
+                                        </td>
+                                        <td>{{ interview.application.job.title }}</td>
+                                        <td>
+                                            <span class="badge bg-info">{{ interview.get_interview_type_display }}</span>
+                                        </td>
+                                        <td>{{ interview.scheduled_date|date:"M d, g:i A" }}</td>
+                                        <td>{{ interview.interviewer.full_name }}</td>
+                                        <td>
+                                            <a href="{% url 'recruiting:interview_update' interview.pk %}" class="btn btn-outline-primary btn-sm">
+                                                {% trans "Edit" %}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

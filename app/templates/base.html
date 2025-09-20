@@ -161,22 +161,18 @@
                         {% endif %}
                         
                         {% if current_tenant.is_recruiter %}
-                            <li class="nav-item">
-                                <a class="nav-link disabled" href="#">
-                                    <i class="bi bi-person-badge"></i> Candidates
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-person-badge"></i> Recruiting
                                 </a>
-                            </li>
-                            
-                            <li class="nav-item">
-                                <a class="nav-link disabled" href="#">
-                                    <i class="bi bi-briefcase"></i> Jobs
-                                </a>
-                            </li>
-                            
-                            <li class="nav-item">
-                                <a class="nav-link disabled" href="#">
-                                    <i class="bi bi-building"></i> Clients
-                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'recruiting:dashboard' %}">Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'recruiting:candidate_list' %}">Candidates</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'recruiting:job_list' %}">Jobs</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'recruiting:client_list' %}">Clients</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'recruiting:reports' %}">Reports</a></li>
+                                </ul>
                             </li>
                         {% endif %}
                         
@@ -267,12 +263,12 @@
                             
                             {% if current_tenant.is_recruiter %}
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark disabled" href="#">
+                                    <a class="nav-link text-dark" href="{% url 'recruiting:candidate_create' %}">
                                         <i class="bi bi-person-plus"></i> Add Candidate
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark disabled" href="#">
+                                    <a class="nav-link text-dark" href="{% url 'recruiting:job_create' %}">
                                         <i class="bi bi-briefcase-fill"></i> Create Job
                                     </a>
                                 </li>

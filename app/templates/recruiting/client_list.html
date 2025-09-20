@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Clients" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Client Companies" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group">
+            <a href="{% url 'recruiting:client_create' %}" class="btn btn-primary">
+                <i class="bi bi-building"></i> {% trans "Add Client" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    {% for client in clients %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 client-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-info text-white rounded d-flex align-items-center justify-content-center me-3" 
+                             style="width: 48px; height: 48px;">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0">{{ client.name }}</h5>
+                            {% if client.industry %}
+                                <small class="text-muted">{{ client.industry }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if client.description %}
+                        <p class="card-text">{{ client.description|truncatewords:15 }}</p>
+                    {% endif %}
+                    
+                    <!-- Client Details -->
+                    <div class="mb-3">
+                        {% if client.size %}
+                            <span class="badge bg-secondary">{{ client.get_size_display }}</span>
+                        {% endif %}
+                        {% if client.website %}
+                            <a href="{{ client.website }}" target="_blank" class="badge bg-primary text-decoration-none">
+                                <i class="bi bi-globe"></i> {% trans "Website" %}
+                            </a>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Statistics -->
+                    <div class="row text-center mb-3">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h6 class="text-primary">{{ client.active_jobs_count }}</h6>
+                                <small class="text-muted">{% trans "Active Jobs" %}</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-success">{{ client.total_placements }}</h6>
+                            <small class="text-muted">{% trans "Placements" %}</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Contact Info -->
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <i class="bi bi-person"></i> {{ client.primary_contact_name }}
+                            <br>
+                            <i class="bi bi-envelope"></i> {{ client.primary_contact_email }}
+                        </small>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'recruiting:client_detail' client.pk %}" class="btn btn-outline-primary btn-sm">
+                                {% trans "View" %}
+                            </a>
+                            <a href="{% url 'recruiting:client_update' client.pk %}" class="btn btn-outline-secondary btn-sm">
+                                {% trans "Edit" %}
+                            </a>
+                        </div>
+                        
+                        {% if client.is_active %}
+                            <span class="badge bg-success">{% trans "Active" %}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-transparent">
+                    <small class="text-muted">
+                        {% trans "Commission:" %} {{ client.commission_rate }}%
+                        {% if client.contract_start_date %}
+                            • {% trans "Since" %} {{ client.contract_start_date|date:"M Y" }}
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-building display-1 text-muted"></i>
+                <h3 class="mt-3">{% trans "No Clients Yet" %}</h3>
+                <p class="text-muted">
+                    {% trans "Add client companies to start managing job openings and placements." %}
+                </p>
+                <a href="{% url 'recruiting:client_create' %}" class="btn btn-primary">
+                    <i class="bi bi-building"></i> {% trans "Add First Client" %}
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{% if clients %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Client Overview" %}</h5>
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <h4 class="text-primary">{{ clients.count }}</h4>
+                            <small class="text-muted">{% trans "Total Clients" %}</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h4 class="text-success">0</h4>
+                            <small class="text-muted">{% trans "Active Jobs" %}</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h4 class="text-info">0</h4>
+                            <small class="text-muted">{% trans "Total Placements" %}</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h4 class="text-warning">0</h4>
+                            <small class="text-muted">{% trans "Avg Commission" %}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.client-card {
+    transition: transform 0.2s;
+}
+
+.client-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}

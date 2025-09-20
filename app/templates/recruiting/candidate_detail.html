@@ -1,0 +1,480 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ candidate.full_name }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <div class="d-flex align-items-center">
+        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+             style="width: 64px; height: 64px; font-size: 24px;">
+            {{ candidate.first_name|first }}{{ candidate.last_name|first }}
+        </div>
+        <div>
+            <h1 class="h2 mb-0">{{ candidate.full_name }}</h1>
+            <p class="text-muted mb-0">
+                {% if candidate.current_title %}
+                    {{ candidate.current_title }}
+                    {% if candidate.current_company %}at {{ candidate.current_company }}{% endif %}
+                {% else %}
+                    {{ candidate.email }}
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'recruiting:candidate_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> {% trans "Back to Candidates" %}
+            </a>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'recruiting:candidate_update' candidate.pk %}" class="btn btn-outline-primary">
+                <i class="bi bi-pencil"></i> {% trans "Edit" %}
+            </a>
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#applyToJobModal">
+                <i class="bi bi-briefcase"></i> {% trans "Apply to Job" %}
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Candidate Information -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Candidate Information" %}</h5>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="row mb-2">
+                            <div class="col-sm-4"><strong>{% trans "Email:" %}</strong></div>
+                            <div class="col-sm-8">
+                                <a href="mailto:{{ candidate.email }}">{{ candidate.email }}</a>
+                            </div>
+                        </div>
+                        {% if candidate.phone %}
+                            <div class="row mb-2">
+                                <div class="col-sm-4"><strong>{% trans "Phone:" %}</strong></div>
+                                <div class="col-sm-8">{{ candidate.phone }}</div>
+                            </div>
+                        {% endif %}
+                        <div class="row mb-2">
+                            <div class="col-sm-4"><strong>{% trans "Experience:" %}</strong></div>
+                            <div class="col-sm-8">{{ candidate.experience_years }} {% trans "years" %}</div>
+                        </div>
+                        {% if candidate.education_level %}
+                            <div class="row mb-2">
+                                <div class="col-sm-4"><strong>{% trans "Education:" %}</strong></div>
+                                <div class="col-sm-8">{{ candidate.get_education_level_display }}</div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        {% if candidate.location %}
+                            <div class="row mb-2">
+                                <div class="col-sm-4"><strong>{% trans "Location:" %}</strong></div>
+                                <div class="col-sm-8">{{ candidate.location }}</div>
+                            </div>
+                        {% endif %}
+                        <div class="row mb-2">
+                            <div class="col-sm-4"><strong>{% trans "Remote Work:" %}</strong></div>
+                            <div class="col-sm-8">{{ candidate.get_remote_work_preference_display }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-4"><strong>{% trans "Relocate:" %}</strong></div>
+                            <div class="col-sm-8">
+                                {% if candidate.willing_to_relocate %}
+                                    <span class="text-success">{% trans "Yes" %}</span>
+                                {% else %}
+                                    <span class="text-muted">{% trans "No" %}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-4"><strong>{% trans "Status:" %}</strong></div>
+                            <div class="col-sm-8">
+                                {% if candidate.status == 'NEW' %}
+                                    <span class="badge bg-warning">{{ candidate.get_status_display }}</span>
+                                {% elif candidate.status == 'QUALIFIED' %}
+                                    <span class="badge bg-success">{{ candidate.get_status_display }}</span>
+                                {% elif candidate.status == 'PLACED' %}
+                                    <span class="badge bg-primary">{{ candidate.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ candidate.get_status_display }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Skills -->
+                {% if candidate.skills %}
+                    <div class="mb-3">
+                        <h6>{% trans "Skills" %}</h6>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for skill in candidate.skills %}
+                                <span class="badge bg-secondary">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <!-- Languages -->
+                {% if candidate.languages %}
+                    <div class="mb-3">
+                        <h6>{% trans "Languages" %}</h6>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for language in candidate.languages %}
+                                <span class="badge bg-info">{{ language }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <!-- Certifications -->
+                {% if candidate.certifications %}
+                    <div class="mb-3">
+                        <h6>{% trans "Certifications" %}</h6>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for cert in candidate.certifications %}
+                                <span class="badge bg-warning">{{ cert }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <!-- Salary Expectations -->
+                {% if candidate.salary_expectation_min or candidate.salary_expectation_max %}
+                    <div class="mb-3">
+                        <h6>{% trans "Salary Expectations" %}</h6>
+                        <p class="text-muted">
+                            {% if candidate.salary_expectation_min and candidate.salary_expectation_max %}
+                                {{ candidate.salary_expectation_min|floatformat:0 }} - {{ candidate.salary_expectation_max|floatformat:0 }} {{ candidate.currency }}
+                            {% elif candidate.salary_expectation_min %}
+                                {{ candidate.salary_expectation_min|floatformat:0 }}+ {{ candidate.currency }}
+                            {% else %}
+                                Up to {{ candidate.salary_expectation_max|floatformat:0 }} {{ candidate.currency }}
+                            {% endif %}
+                        </p>
+                    </div>
+                {% endif %}
+                
+                <!-- Documents -->
+                <div class="mb-3">
+                    <h6>{% trans "Documents & Links" %}</h6>
+                    <div class="d-flex gap-2">
+                        {% if candidate.resume_file %}
+                            <a href="{{ candidate.resume_file.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-file-earmark-pdf"></i> {% trans "Resume" %}
+                            </a>
+                        {% endif %}
+                        {% if candidate.portfolio_url %}
+                            <a href="{{ candidate.portfolio_url }}" target="_blank" class="btn btn-outline-info btn-sm">
+                                <i class="bi bi-globe"></i> {% trans "Portfolio" %}
+                            </a>
+                        {% endif %}
+                        {% if candidate.linkedin_url %}
+                            <a href="{{ candidate.linkedin_url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-linkedin"></i> {% trans "LinkedIn" %}
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Job Applications -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Job Applications" %}</h5>
+                
+                {% for application in applications %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">
+                                <a href="{% url 'recruiting:job_detail' application.job.pk %}" class="text-decoration-none">
+                                    {{ application.job.title }}
+                                </a>
+                            </h6>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <small class="text-muted">{{ application.job.client.name }}</small>
+                                {% if application.status == 'QUALIFIED' %}
+                                    <span class="badge bg-success">{{ application.get_status_display }}</span>
+                                {% elif application.status == 'INTERVIEWED' %}
+                                    <span class="badge bg-info">{{ application.get_status_display }}</span>
+                                {% elif application.status == 'OFFERED' %}
+                                    <span class="badge bg-warning">{{ application.get_status_display }}</span>
+                                {% elif application.status == 'HIRED' %}
+                                    <span class="badge bg-primary">{{ application.get_status_display }}</span>
+                                {% elif application.status == 'REJECTED' %}
+                                    <span class="badge bg-danger">{{ application.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ application.get_status_display }}</span>
+                                {% endif %}
+                            </div>
+                            {% if application.fit_score %}
+                                <small class="text-muted">
+                                    <i class="bi bi-graph-up"></i> {% trans "Fit Score:" %} {{ application.fit_score|floatformat:0 }}%
+                                </small>
+                            {% endif %}
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted">{{ application.applied_date|date:"M d, Y" }}</small>
+                            <br>
+                            <a href="{% url 'recruiting:application_detail' application.pk %}" class="btn btn-outline-primary btn-sm">
+                                {% trans "View" %}
+                            </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-briefcase-fill display-4 text-muted"></i>
+                        <p class="mt-2 text-muted">{% trans "No job applications yet." %}</p>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#applyToJobModal">
+                            {% trans "Apply to Job" %}
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Assessment History -->
+        {% if assessments %}
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Assessment History" %}</h5>
+                    
+                    {% for assessment in assessments %}
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+                            <div>
+                                <h6 class="mb-1">{{ assessment.assessment_instance.assessment.name }}</h6>
+                                <small class="text-muted">
+                                    {{ assessment.get_purpose_display }} • 
+                                    {{ assessment.created_at|date:"M d, Y" }}
+                                </small>
+                                {% if assessment.overall_score %}
+                                    <br><small class="text-success">
+                                        <i class="bi bi-star"></i> {% trans "Score:" %} {{ assessment.overall_score|floatformat:1 }}
+                                    </small>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <a href="{% url 'assessments:result' assessment.assessment_instance.token %}" class="btn btn-outline-primary btn-sm">
+                                    {% trans "View Results" %}
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <!-- Quick Stats -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Quick Stats" %}</h5>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-primary">{{ candidate.active_applications_count }}</h4>
+                            <small class="text-muted">{% trans "Active Applications" %}</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">{{ assessments.count }}</h4>
+                        <small class="text-muted">{% trans "Assessments" %}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Source Information -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Source Information" %}</h5>
+                <ul class="list-unstyled">
+                    <li><strong>{% trans "Source:" %}</strong> {{ candidate.get_source_display }}</li>
+                    {% if candidate.source_details %}
+                        <li><strong>{% trans "Details:" %}</strong> {{ candidate.source_details }}</li>
+                    {% endif %}
+                    {% if candidate.assigned_recruiter %}
+                        <li><strong>{% trans "Recruiter:" %}</strong> {{ candidate.assigned_recruiter.full_name }}</li>
+                    {% endif %}
+                    <li><strong>{% trans "Added:" %}</strong> {{ candidate.created_at|date:"M d, Y" }}</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Quick Actions" %}</h5>
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#applyToJobModal">
+                        <i class="bi bi-briefcase"></i> {% trans "Apply to Job" %}
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" disabled>
+                        <i class="bi bi-clipboard-check"></i> {% trans "Send Assessment" %}
+                    </button>
+                    <button type="button" class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#addNoteModal">
+                        <i class="bi bi-chat-dots"></i> {% trans "Add Note" %}
+                    </button>
+                    <a href="{% url 'recruiting:candidate_update' candidate.pk %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-pencil"></i> {% trans "Edit Profile" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Internal Notes -->
+        {% if candidate.notes %}
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Internal Notes" %}</h5>
+                    <p class="small text-muted">{{ candidate.notes|linebreaks }}</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Notes Section -->
+{% if notes %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Activity Notes" %}</h5>
+                    
+                    {% for note in notes %}
+                        <div class="d-flex align-items-start border-bottom py-3">
+                            <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 32px; height: 32px; font-size: 12px;">
+                                {{ note.author.first_name|first }}
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <strong>{{ note.author.full_name }}</strong>
+                                    <small class="text-muted">{{ note.created_at|date:"M d, Y g:i A" }}</small>
+                                </div>
+                                <p class="mb-1">{{ note.content|linebreaks }}</p>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-light text-dark">{{ note.get_note_type_display }}</span>
+                                    {% if note.is_private %}
+                                        <span class="badge bg-warning">
+                                            <i class="bi bi-lock"></i> {% trans "Private" %}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Apply to Job Modal -->
+<div class="modal fade" id="applyToJobModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{% trans "Apply to Job" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>{% trans "Feature coming soon - Apply candidate to specific job openings." %}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Note Modal -->
+<div class="modal fade" id="addNoteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{% trans "Add Note" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="noteForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="noteType" class="form-label">{% trans "Note Type" %}</label>
+                        <select class="form-select" id="noteType" name="note_type">
+                            <option value="GENERAL">{% trans "General" %}</option>
+                            <option value="SCREENING">{% trans "Screening" %}</option>
+                            <option value="INTERVIEW">{% trans "Interview" %}</option>
+                            <option value="REFERENCE">{% trans "Reference Check" %}</option>
+                            <option value="ASSESSMENT">{% trans "Assessment" %}</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="noteContent" class="form-label">{% trans "Note Content" %}</label>
+                        <textarea class="form-control" id="noteContent" name="content" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="isPrivate" name="is_private">
+                            <label class="form-check-label" for="isPrivate">
+                                {% trans "Private note (only visible to recruiters)" %}
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                <button type="button" class="btn btn-primary" onclick="addNote()">
+                    {% trans "Add Note" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function addNote() {
+    const form = document.getElementById('noteForm');
+    const formData = new FormData(form);
+    
+    fetch(`{% url 'recruiting:candidate_note' candidate.pk %}`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addNoteModal'));
+            modal.hide();
+            
+            // Reload page to show new note
+            location.reload();
+        } else {
+            alert('Error adding note: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding note');
+    });
+}
+</script>
+{% endblock %}

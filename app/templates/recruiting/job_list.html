@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Jobs" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Job Openings" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'recruiting:client_list' %}" class="btn btn-outline-info">
+                <i class="bi bi-building"></i> {% trans "Manage Clients" %}
+            </a>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'recruiting:job_create' %}" class="btn btn-primary">
+                <i class="bi bi-briefcase-fill"></i> {% trans "Create Job" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        {{ search_form.search }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ search_form.client }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ search_form.status }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ search_form.priority }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ search_form.employment_type }}
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Jobs Grid -->
+<div class="row">
+    {% for job in jobs %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 job-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary text-white rounded d-flex align-items-center justify-content-center me-3" 
+                             style="width: 48px; height: 48px;">
+                            <i class="bi bi-briefcase"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0">{{ job.title }}</h5>
+                            <small class="text-muted">{{ job.client.name }}</small>
+                        </div>
+                    </div>
+                    
+                    <p class="card-text">{{ job.description|truncatewords:15 }}</p>
+                    
+                    <!-- Job Details -->
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            {% if job.status == 'OPEN' %}
+                                <span class="badge bg-success">{{ job.get_status_display }}</span>
+                            {% elif job.status == 'IN_PROGRESS' %}
+                                <span class="badge bg-primary">{{ job.get_status_display }}</span>
+                            {% elif job.status == 'FILLED' %}
+                                <span class="badge bg-info">{{ job.get_status_display }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ job.get_status_display }}</span>
+                            {% endif %}
+                            
+                            {% if job.priority == 'URGENT' %}
+                                <span class="badge bg-danger">{{ job.get_priority_display }}</span>
+                            {% elif job.priority == 'HIGH' %}
+                                <span class="badge bg-warning">{{ job.get_priority_display }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <small class="text-muted">
+                            <i class="bi bi-geo-alt"></i> {{ job.location }}
+                            {% if job.remote_allowed %}
+                                <span class="badge bg-success ms-1">{% trans "Remote OK" %}</span>
+                            {% endif %}
+                        </small>
+                    </div>
+                    
+                    <!-- Statistics -->
+                    <div class="row text-center mb-3">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h6 class="text-primary">{{ job.applications_count }}</h6>
+                                <small class="text-muted">{% trans "Applications" %}</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-success">{{ job.qualified_candidates_count }}</h6>
+                            <small class="text-muted">{% trans "Qualified" %}</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Compensation -->
+                    {% if job.salary_min or job.salary_max %}
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <i class="bi bi-currency-dollar"></i>
+                                {% if job.salary_min and job.salary_max %}
+                                    {{ job.salary_min|floatformat:0 }} - {{ job.salary_max|floatformat:0 }} {{ job.currency }}
+                                {% elif job.salary_min %}
+                                    {{ job.salary_min|floatformat:0 }}+ {{ job.currency }}
+                                {% else %}
+                                    Up to {{ job.salary_max|floatformat:0 }} {{ job.currency }}
+                                {% endif %}
+                            </small>
+                        </p>
+                    {% endif %}
+                    
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'recruiting:job_detail' job.pk %}" class="btn btn-outline-primary btn-sm">
+                                {% trans "View" %}
+                            </a>
+                            <a href="{% url 'recruiting:job_update' job.pk %}" class="btn btn-outline-secondary btn-sm">
+                                {% trans "Edit" %}
+                            </a>
+                        </div>
+                        
+                        {% if job.assigned_recruiter %}
+                            <small class="text-muted">{{ job.assigned_recruiter.full_name }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-transparent">
+                    <small class="text-muted">
+                        {% trans "Posted" %} {{ job.posted_date|date:"M d, Y"|default:"Not posted" }}
+                        {% if job.application_deadline %}
+                            • {% trans "Deadline" %} {{ job.application_deadline|date:"M d" }}
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-briefcase display-1 text-muted"></i>
+                <h3 class="mt-3">{% trans "No Jobs Yet" %}</h3>
+                <p class="text-muted">
+                    {% trans "Create job openings to start your recruiting process." %}
+                </p>
+                <a href="{% url 'recruiting:job_create' %}" class="btn btn-primary">
+                    <i class="bi bi-briefcase-fill"></i> {% trans "Create First Job" %}
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+    <nav aria-label="{% trans 'Jobs pagination' %}">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        {% trans "First" %}
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        {% trans "Previous" %}
+                    </a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">
+                    {% trans "Page" %} {{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        {% trans "Next" %}
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        {% trans "Last" %}
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.job-card {
+    transition: transform 0.2s;
+}
+
+.job-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}

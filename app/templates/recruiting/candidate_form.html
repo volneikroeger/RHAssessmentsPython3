@@ -1,0 +1,373 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}
+    {% if object %}
+        {% trans "Edit Candidate" %} - {{ object.full_name }}
+    {% else %}
+        {% trans "Add Candidate" %}
+    {% endif %}
+    - {{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        {% if object %}
+            {% trans "Edit Candidate" %}
+        {% else %}
+            {% trans "Add New Candidate" %}
+        {% endif %}
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% if object %}{% url 'recruiting:candidate_detail' object.pk %}{% else %}{% url 'recruiting:candidate_list' %}{% endif %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back" %}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <!-- Personal Information -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Personal Information" %}</h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label">{{ form.first_name.label }} *</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="text-danger">{{ form.first_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label">{{ form.last_name.label }} *</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="text-danger">{{ form.last_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }} *</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger">{{ form.email.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.phone.id_for_label }}" class="form-label">{{ form.phone.label }}</label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                                <div class="text-danger">{{ form.phone.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Professional Information -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Professional Information" %}</h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.current_title.id_for_label }}" class="form-label">{{ form.current_title.label }}</label>
+                            {{ form.current_title }}
+                            {% if form.current_title.errors %}
+                                <div class="text-danger">{{ form.current_title.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.current_company.id_for_label }}" class="form-label">{{ form.current_company.label }}</label>
+                            {{ form.current_company }}
+                            {% if form.current_company.errors %}
+                                <div class="text-danger">{{ form.current_company.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.experience_years.id_for_label }}" class="form-label">{{ form.experience_years.label }}</label>
+                            {{ form.experience_years }}
+                            {% if form.experience_years.errors %}
+                                <div class="text-danger">{{ form.experience_years.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.education_level.id_for_label }}" class="form-label">{{ form.education_level.label }}</label>
+                            {{ form.education_level }}
+                            {% if form.education_level.errors %}
+                                <div class="text-danger">{{ form.education_level.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.skills_text.id_for_label }}" class="form-label">{{ form.skills_text.label }}</label>
+                        {{ form.skills_text }}
+                        {% if form.skills_text.errors %}
+                            <div class="text-danger">{{ form.skills_text.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">{{ form.skills_text.help_text }}</div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.languages_text.id_for_label }}" class="form-label">{{ form.languages_text.label }}</label>
+                            {{ form.languages_text }}
+                            {% if form.languages_text.errors %}
+                                <div class="text-danger">{{ form.languages_text.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">{{ form.languages_text.help_text }}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.certifications_text.id_for_label }}" class="form-label">{{ form.certifications_text.label }}</label>
+                            {{ form.certifications_text }}
+                            {% if form.certifications_text.errors %}
+                                <div class="text-danger">{{ form.certifications_text.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">{{ form.certifications_text.help_text }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Location & Availability -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Location & Availability" %}</h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.location.id_for_label }}" class="form-label">{{ form.location.label }}</label>
+                            {{ form.location }}
+                            {% if form.location.errors %}
+                                <div class="text-danger">{{ form.location.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.remote_work_preference.id_for_label }}" class="form-label">{{ form.remote_work_preference.label }}</label>
+                            {{ form.remote_work_preference }}
+                            {% if form.remote_work_preference.errors %}
+                                <div class="text-danger">{{ form.remote_work_preference.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.willing_to_relocate }}
+                            <label class="form-check-label" for="{{ form.willing_to_relocate.id_for_label }}">
+                                {{ form.willing_to_relocate.label }}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Compensation -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Compensation Expectations" %}</h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="{{ form.salary_expectation_min.id_for_label }}" class="form-label">{{ form.salary_expectation_min.label }}</label>
+                            {{ form.salary_expectation_min }}
+                            {% if form.salary_expectation_min.errors %}
+                                <div class="text-danger">{{ form.salary_expectation_min.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.salary_expectation_max.id_for_label }}" class="form-label">{{ form.salary_expectation_max.label }}</label>
+                            {{ form.salary_expectation_max }}
+                            {% if form.salary_expectation_max.errors %}
+                                <div class="text-danger">{{ form.salary_expectation_max.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.currency.id_for_label }}" class="form-label">{{ form.currency.label }}</label>
+                            {{ form.currency }}
+                            {% if form.currency.errors %}
+                                <div class="text-danger">{{ form.currency.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Documents -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Documents & Links" %}</h5>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.resume_file.id_for_label }}" class="form-label">{{ form.resume_file.label }}</label>
+                        {{ form.resume_file }}
+                        {% if form.resume_file.errors %}
+                            <div class="text-danger">{{ form.resume_file.errors }}</div>
+                        {% endif %}
+                        {% if object and object.resume_file %}
+                            <div class="mt-2">
+                                <a href="{{ object.resume_file.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-file-earmark-pdf"></i> {% trans "View Current Resume" %}
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.portfolio_url.id_for_label }}" class="form-label">{{ form.portfolio_url.label }}</label>
+                            {{ form.portfolio_url }}
+                            {% if form.portfolio_url.errors %}
+                                <div class="text-danger">{{ form.portfolio_url.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.linkedin_url.id_for_label }}" class="form-label">{{ form.linkedin_url.label }}</label>
+                            {{ form.linkedin_url }}
+                            {% if form.linkedin_url.errors %}
+                                <div class="text-danger">{{ form.linkedin_url.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Management -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Management & Tracking" %}</h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">{{ form.status.label }}</label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                                <div class="text-danger">{{ form.status.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.assigned_recruiter.id_for_label }}" class="form-label">{{ form.assigned_recruiter.label }}</label>
+                            {{ form.assigned_recruiter }}
+                            {% if form.assigned_recruiter.errors %}
+                                <div class="text-danger">{{ form.assigned_recruiter.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.source.id_for_label }}" class="form-label">{{ form.source.label }}</label>
+                            {{ form.source }}
+                            {% if form.source.errors %}
+                                <div class="text-danger">{{ form.source.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.source_details.id_for_label }}" class="form-label">{{ form.source_details.label }}</label>
+                            {{ form.source_details }}
+                            {% if form.source_details.errors %}
+                                <div class="text-danger">{{ form.source_details.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">{{ form.notes.label }}</label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <div class="text-danger">{{ form.notes.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">{% trans "Internal notes about this candidate (not visible to candidate)." %}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form Actions -->
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                <a href="{% if object %}{% url 'recruiting:candidate_detail' object.pk %}{% else %}{% url 'recruiting:candidate_list' %}{% endif %}" class="btn btn-outline-secondary me-md-2">
+                    {% trans "Cancel" %}
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> 
+                    {% if object %}
+                        {% trans "Save Changes" %}
+                    {% else %}
+                        {% trans "Add Candidate" %}
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Candidate Profile Tips" %}</h5>
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="bi bi-info-circle text-info"></i>
+                        {% trans "Complete profiles help with better job matching" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-shield-check text-success"></i>
+                        {% trans "Personal information is encrypted and secure" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-graph-up text-primary"></i>
+                        {% trans "Skills and experience drive matching algorithms" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-file-earmark text-warning"></i>
+                        {% trans "Upload resume for better candidate presentation" %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Status Guide" %}</h5>
+                <ul class="list-unstyled small">
+                    <li class="mb-1"><span class="badge bg-warning">{% trans "New" %}</span> - {% trans "Recently added" %}</li>
+                    <li class="mb-1"><span class="badge bg-info">{% trans "Screening" %}</span> - {% trans "Under review" %}</li>
+                    <li class="mb-1"><span class="badge bg-success">{% trans "Qualified" %}</span> - {% trans "Meets requirements" %}</li>
+                    <li class="mb-1"><span class="badge bg-primary">{% trans "Placed" %}</span> - {% trans "Successfully hired" %}</li>
+                    <li class="mb-1"><span class="badge bg-danger">{% trans "Rejected" %}</span> - {% trans "Not suitable" %}</li>
+                </ul>
+            </div>
+        </div>
+        
+        {% if object %}
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Current Status" %}</h5>
+                    <ul class="list-unstyled">
+                        <li><strong>{% trans "Status:" %}</strong> {{ object.get_status_display }}</li>
+                        <li><strong>{% trans "Applications:" %}</strong> {{ object.active_applications_count }}</li>
+                        <li><strong>{% trans "Assessments:" %}</strong> 
+                            {% if object.assessment_completed %}
+                                <span class="text-success">{% trans "Completed" %}</span>
+                            {% else %}
+                                <span class="text-muted">{% trans "None" %}</span>
+                            {% endif %}
+                        </li>
+                        <li><strong>{% trans "Added:" %}</strong> {{ object.created_at|date:"M d, Y" }}</li>
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

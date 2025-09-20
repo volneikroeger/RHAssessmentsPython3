@@ -1,0 +1,439 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ job.title }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <div class="d-flex align-items-center">
+        <div class="bg-primary text-white rounded d-flex align-items-center justify-content-center me-3" 
+             style="width: 64px; height: 64px; font-size: 24px;">
+            <i class="bi bi-briefcase"></i>
+        </div>
+        <div>
+            <h1 class="h2 mb-0">{{ job.title }}</h1>
+            <p class="text-muted mb-0">{{ job.client.name }} - {{ job.get_status_display }}</p>
+        </div>
+    </div>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'recruiting:job_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> {% trans "Back to Jobs" %}
+            </a>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'recruiting:job_update' job.pk %}" class="btn btn-outline-primary">
+                <i class="bi bi-pencil"></i> {% trans "Edit Job" %}
+            </a>
+            <a href="{% url 'recruiting:candidate_matching' job.pk %}" class="btn btn-success">
+                <i class="bi bi-search"></i> {% trans "Find Candidates" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Job Information -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Job Description" %}</h5>
+                
+                <div class="mb-4">
+                    {{ job.description|linebreaks }}
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>{% trans "Requirements" %}</h6>
+                        <div class="mb-3">
+                            {{ job.requirements|linebreaks }}
+                        </div>
+                        
+                        {% if job.required_skills %}
+                            <h6>{% trans "Required Skills" %}</h6>
+                            <div class="d-flex flex-wrap gap-1 mb-3">
+                                {% for skill in job.required_skills %}
+                                    <span class="badge bg-danger">{{ skill }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        {% if job.preferred_skills %}
+                            <h6>{% trans "Preferred Skills" %}</h6>
+                            <div class="d-flex flex-wrap gap-1 mb-3">
+                                {% for skill in job.preferred_skills %}
+                                    <span class="badge bg-warning">{{ skill }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h6>{% trans "Responsibilities" %}</h6>
+                        <div class="mb-3">
+                            {{ job.responsibilities|linebreaks }}
+                        </div>
+                        
+                        {% if job.languages %}
+                            <h6>{% trans "Languages" %}</h6>
+                            <div class="d-flex flex-wrap gap-1 mb-3">
+                                {% for language in job.languages %}
+                                    <span class="badge bg-info">{{ language }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Job Details -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>{% trans "Employment Type:" %}</strong></div>
+                            <div class="col-sm-7">{{ job.get_employment_type_display }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>{% trans "Location:" %}</strong></div>
+                            <div class="col-sm-7">
+                                {{ job.location }}
+                                {% if job.remote_allowed %}
+                                    <span class="badge bg-success ms-1">{% trans "Remote OK" %}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>{% trans "Experience:" %}</strong></div>
+                            <div class="col-sm-7">
+                                {{ job.min_experience_years }}{% if job.max_experience_years %}-{{ job.max_experience_years }}{% else %}+{% endif %} {% trans "years" %}
+                            </div>
+                        </div>
+                        {% if job.education_level %}
+                            <div class="row mb-2">
+                                <div class="col-sm-5"><strong>{% trans "Education:" %}</strong></div>
+                                <div class="col-sm-7">{{ job.get_education_level_display }}</div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        {% if job.salary_min or job.salary_max %}
+                            <div class="row mb-2">
+                                <div class="col-sm-5"><strong>{% trans "Salary:" %}</strong></div>
+                                <div class="col-sm-7">
+                                    {% if job.salary_min and job.salary_max %}
+                                        {{ job.salary_min|floatformat:0 }} - {{ job.salary_max|floatformat:0 }} {{ job.currency }}
+                                    {% elif job.salary_min %}
+                                        {{ job.salary_min|floatformat:0 }}+ {{ job.currency }}
+                                    {% else %}
+                                        Up to {{ job.salary_max|floatformat:0 }} {{ job.currency }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>{% trans "Positions:" %}</strong></div>
+                            <div class="col-sm-7">{{ job.positions_filled }}/{{ job.positions_available }}</div>
+                        </div>
+                        {% if job.application_deadline %}
+                            <div class="row mb-2">
+                                <div class="col-sm-5"><strong>{% trans "Deadline:" %}</strong></div>
+                                <div class="col-sm-7">{{ job.application_deadline|date:"M d, Y" }}</div>
+                            </div>
+                        {% endif %}
+                        {% if job.assigned_recruiter %}
+                            <div class="row mb-2">
+                                <div class="col-sm-5"><strong>{% trans "Recruiter:" %}</strong></div>
+                                <div class="col-sm-7">{{ job.assigned_recruiter.full_name }}</div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Applications -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">{% trans "Applications" %}</h5>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-primary">{{ application_stats.total }} {% trans "Total" %}</span>
+                        <span class="badge bg-success">{{ application_stats.qualified }} {% trans "Qualified" %}</span>
+                        <span class="badge bg-warning">{{ application_stats.in_progress }} {% trans "In Progress" %}</span>
+                        <span class="badge bg-danger">{{ application_stats.rejected }} {% trans "Rejected" %}</span>
+                    </div>
+                </div>
+                
+                {% for application in applications %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                     style="width: 32px; height: 32px; font-size: 12px;">
+                                    {{ application.candidate.first_name|first }}{{ application.candidate.last_name|first }}
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">
+                                        <a href="{% url 'recruiting:candidate_detail' application.candidate.pk %}" class="text-decoration-none">
+                                            {{ application.candidate.full_name }}
+                                        </a>
+                                    </h6>
+                                    <div class="d-flex align-items-center gap-2">
+                                        {% if application.status == 'QUALIFIED' %}
+                                            <span class="badge bg-success">{{ application.get_status_display }}</span>
+                                        {% elif application.status == 'INTERVIEWED' %}
+                                            <span class="badge bg-info">{{ application.get_status_display }}</span>
+                                        {% elif application.status == 'OFFERED' %}
+                                            <span class="badge bg-warning">{{ application.get_status_display }}</span>
+                                        {% elif application.status == 'HIRED' %}
+                                            <span class="badge bg-primary">{{ application.get_status_display }}</span>
+                                        {% elif application.status == 'REJECTED' %}
+                                            <span class="badge bg-danger">{{ application.get_status_display }}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ application.get_status_display }}</span>
+                                        {% endif %}
+                                        
+                                        {% if application.fit_score %}
+                                            <small class="text-muted">
+                                                <i class="bi bi-graph-up"></i> {{ application.fit_score|floatformat:0 }}%
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted">{{ application.applied_date|date:"M d, Y" }}</small>
+                            <br>
+                            <a href="{% url 'recruiting:application_detail' application.pk %}" class="btn btn-outline-primary btn-sm">
+                                {% trans "View" %}
+                            </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-person-badge display-4 text-muted"></i>
+                        <h4 class="mt-3">{% trans "No Applications Yet" %}</h4>
+                        <p class="text-muted">
+                            {% trans "No candidates have applied to this job yet." %}
+                        </p>
+                        <a href="{% url 'recruiting:candidate_matching' job.pk %}" class="btn btn-primary">
+                            <i class="bi bi-search"></i> {% trans "Find Matching Candidates" %}
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <!-- Job Statistics -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Job Statistics" %}</h5>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-primary">{{ job.applications_count }}</h4>
+                            <small class="text-muted">{% trans "Applications" %}</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">{{ job.qualified_candidates_count }}</h4>
+                        <small class="text-muted">{% trans "Qualified" %}</small>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-info">{{ job.positions_filled }}</h4>
+                            <small class="text-muted">{% trans "Filled" %}</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-warning">{{ job.positions_available }}</h4>
+                        <small class="text-muted">{% trans "Available" %}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Client Information -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Client Information" %}</h5>
+                <ul class="list-unstyled">
+                    <li><strong>{% trans "Company:" %}</strong> 
+                        <a href="{% url 'recruiting:client_detail' job.client.pk %}" class="text-decoration-none">
+                            {{ job.client.name }}
+                        </a>
+                    </li>
+                    {% if job.client.industry %}
+                        <li><strong>{% trans "Industry:" %}</strong> {{ job.client.industry }}</li>
+                    {% endif %}
+                    {% if job.client.size %}
+                        <li><strong>{% trans "Size:" %}</strong> {{ job.client.get_size_display }}</li>
+                    {% endif %}
+                    <li><strong>{% trans "Contact:" %}</strong> {{ job.client.primary_contact_name }}</li>
+                    <li><strong>{% trans "Commission:" %}</strong> {{ job.client.commission_rate }}%</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Quick Actions" %}</h5>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'recruiting:candidate_matching' job.pk %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-search"></i> {% trans "Find Candidates" %}
+                    </a>
+                    <a href="{% url 'recruiting:job_update' job.pk %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-pencil"></i> {% trans "Edit Job" %}
+                    </a>
+                    <button type="button" class="btn btn-outline-info btn-sm" disabled>
+                        <i class="bi bi-clipboard-check"></i> {% trans "Send Assessment" %}
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" disabled>
+                        <i class="bi bi-file-earmark-pdf"></i> {% trans "Generate Report" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Assessment Requirements -->
+        {% if job.requires_assessment %}
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Assessment Requirements" %}</h5>
+                    {% if job.assessment_definition %}
+                        <p class="card-text">
+                            <strong>{{ job.assessment_definition.name }}</strong>
+                            <br><small class="text-muted">{{ job.assessment_definition.get_framework_display }}</small>
+                        </p>
+                        <a href="{% url 'assessments:detail' job.assessment_definition.pk %}" class="btn btn-outline-primary btn-sm">
+                            {% trans "View Assessment" %}
+                        </a>
+                    {% else %}
+                        <p class="text-muted">{% trans "Assessment required but not specified." %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <!-- Job Details -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Job Details" %}</h5>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>{% trans "Status:" %}</span>
+                        {% if job.status == 'OPEN' %}
+                            <span class="badge bg-success">{{ job.get_status_display }}</span>
+                        {% elif job.status == 'IN_PROGRESS' %}
+                            <span class="badge bg-primary">{{ job.get_status_display }}</span>
+                        {% elif job.status == 'FILLED' %}
+                            <span class="badge bg-info">{{ job.get_status_display }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ job.get_status_display }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>{% trans "Priority:" %}</span>
+                        {% if job.priority == 'URGENT' %}
+                            <span class="badge bg-danger">{{ job.get_priority_display }}</span>
+                        {% elif job.priority == 'HIGH' %}
+                            <span class="badge bg-warning">{{ job.get_priority_display }}</span>
+                        {% elif job.priority == 'MEDIUM' %}
+                            <span class="badge bg-info">{{ job.get_priority_display }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ job.get_priority_display }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <ul class="list-unstyled">
+                    {% if job.posted_date %}
+                        <li><strong>{% trans "Posted:" %}</strong> {{ job.posted_date|date:"M d, Y" }}</li>
+                    {% endif %}
+                    {% if job.application_deadline %}
+                        <li><strong>{% trans "Deadline:" %}</strong> {{ job.application_deadline|date:"M d, Y" }}</li>
+                    {% endif %}
+                    {% if job.target_start_date %}
+                        <li><strong>{% trans "Start Date:" %}</strong> {{ job.target_start_date|date:"M d, Y" }}</li>
+                    {% endif %}
+                    <li><strong>{% trans "Created:" %}</strong> {{ job.created_at|date:"M d, Y" }}</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Application Pipeline -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Application Pipeline" %}</h5>
+                
+                <div class="pipeline-stage">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{% trans "Applied" %}</span>
+                        <span class="badge bg-secondary">{{ applications.filter.status='APPLIED'.count }}</span>
+                    </div>
+                    <div class="progress mb-3" style="height: 4px;">
+                        <div class="progress-bar bg-secondary" style="width: 100%"></div>
+                    </div>
+                </div>
+                
+                <div class="pipeline-stage">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{% trans "Screening" %}</span>
+                        <span class="badge bg-warning">{{ applications.filter.status='SCREENING'.count }}</span>
+                    </div>
+                    <div class="progress mb-3" style="height: 4px;">
+                        <div class="progress-bar bg-warning" style="width: 80%"></div>
+                    </div>
+                </div>
+                
+                <div class="pipeline-stage">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{% trans "Qualified" %}</span>
+                        <span class="badge bg-success">{{ applications.filter.status='QUALIFIED'.count }}</span>
+                    </div>
+                    <div class="progress mb-3" style="height: 4px;">
+                        <div class="progress-bar bg-success" style="width: 60%"></div>
+                    </div>
+                </div>
+                
+                <div class="pipeline-stage">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{% trans "Interviewed" %}</span>
+                        <span class="badge bg-info">{{ applications.filter.status='INTERVIEWED'.count }}</span>
+                    </div>
+                    <div class="progress mb-3" style="height: 4px;">
+                        <div class="progress-bar bg-info" style="width: 40%"></div>
+                    </div>
+                </div>
+                
+                <div class="pipeline-stage">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{% trans "Hired" %}</span>
+                        <span class="badge bg-primary">{{ applications.filter.status='HIRED'.count }}</span>
+                    </div>
+                    <div class="progress" style="height: 4px;">
+                        <div class="progress-bar bg-primary" style="width: 20%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
