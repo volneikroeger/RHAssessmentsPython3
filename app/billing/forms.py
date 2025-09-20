@@ -5,14 +5,20 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 from decimal import Decimal
-from .models import UsageMeter # Corrected import path
+from django.apps import apps # Importar apps para acesso seguro ao modelo
+
+# Não importe UsageMeter diretamente aqui no topo,
+# pois isso causa o problema de carregamento antecipado.
+# from .models import UsageMeter
 
 User = get_user_model()
 
-# Helper function to get choices dynamically
-# This function will only be called when the form is instantiated,
-# ensuring that Django's App Registry is fully loaded.
+# Função auxiliar para obter as choices dinamicamente
+# Esta função só será chamada quando o formulário for instanciado,
+# garantindo que o App Registry do Django já esteja carregado.
 def get_usage_meter_choices():
+    # Acessa o modelo de forma segura através do App Registry
+    UsageMeter = apps.get_model('billing', 'UsageMeter')
     return UsageMeter.USAGE_TYPES
 
 
