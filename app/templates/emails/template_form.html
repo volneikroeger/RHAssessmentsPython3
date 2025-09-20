@@ -1,0 +1,393 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}
+    {% if object %}
+        {% trans "Edit Template" %} - {{ object.name }}
+    {% else %}
+        {% trans "Create Email Template" %}
+    {% endif %}
+    - {{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        {% if object %}
+            {% trans "Edit Email Template" %}
+        {% else %}
+            {% trans "Create Email Template" %}
+        {% endif %}
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% if object %}{% url 'emails:template_detail' object.pk %}{% else %}{% url 'emails:template_list' %}{% endif %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back" %}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- Basic Information -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Template Information" %}</h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">{{ form.name.label }} *</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger">{{ form.name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.template_type.id_for_label }}" class="form-label">{{ form.template_type.label }} *</label>
+                            {{ form.template_type }}
+                            {% if form.template_type.errors %}
+                                <div class="text-danger">{{ form.template_type.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.language.id_for_label }}" class="form-label">{{ form.language.label }}</label>
+                            {{ form.language }}
+                            {% if form.language.errors %}
+                                <div class="text-danger">{{ form.language.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-check mt-4">
+                                        {{ form.is_active }}
+                                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                            {{ form.is_active.label }}
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check mt-4">
+                                        {{ form.is_default }}
+                                        <label class="form-check-label" for="{{ form.is_default.id_for_label }}">
+                                            {{ form.is_default.label }}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Email Content -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Email Content" %}</h5>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.subject.id_for_label }}" class="form-label">{{ form.subject.label }} *</label>
+                        {{ form.subject }}
+                        {% if form.subject.errors %}
+                            <div class="text-danger">{{ form.subject.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">{% trans "Use template variables like {{user.first_name}} for personalization." %}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.html_content.id_for_label }}" class="form-label">{{ form.html_content.label }} *</label>
+                        {{ form.html_content }}
+                        {% if form.html_content.errors %}
+                            <div class="text-danger">{{ form.html_content.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">{% trans "HTML content with inline CSS for best compatibility." %}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.text_content.id_for_label }}" class="form-label">{{ form.text_content.label }}</label>
+                        {{ form.text_content }}
+                        {% if form.text_content.errors %}
+                            <div class="text-danger">{{ form.text_content.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">{% trans "Plain text version for email clients that don't support HTML." %}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sender Configuration -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Sender Configuration" %}</h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.from_email.id_for_label }}" class="form-label">{{ form.from_email.label }}</label>
+                            {{ form.from_email }}
+                            {% if form.from_email.errors %}
+                                <div class="text-danger">{{ form.from_email.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">{% trans "Leave empty to use organization email." %}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.from_name.id_for_label }}" class="form-label">{{ form.from_name.label }}</label>
+                            {{ form.from_name }}
+                            {% if form.from_name.errors %}
+                                <div class="text-danger">{{ form.from_name.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">{% trans "Leave empty to use organization name." %}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.reply_to.id_for_label }}" class="form-label">{{ form.reply_to.label }}</label>
+                        {{ form.reply_to }}
+                        {% if form.reply_to.errors %}
+                            <div class="text-danger">{{ form.reply_to.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">{% trans "Email address for replies (optional)." %}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form Actions -->
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                <a href="{% if object %}{% url 'emails:template_detail' object.pk %}{% else %}{% url 'emails:template_list' %}{% endif %}" class="btn btn-outline-secondary me-md-2">
+                    {% trans "Cancel" %}
+                </a>
+                <button type="button" class="btn btn-outline-info me-md-2" onclick="previewTemplate()">
+                    <i class="bi bi-eye"></i> {% trans "Preview" %}
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> 
+                    {% if object %}
+                        {% trans "Save Changes" %}
+                    {% else %}
+                        {% trans "Create Template" %}
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Template Variables" %}</h5>
+                <p class="small text-muted">{% trans "Use these variables in your templates:" %}</p>
+                
+                <div class="mb-3">
+                    <h6 class="text-primary">{% trans "User Variables" %}</h6>
+                    <ul class="list-unstyled small">
+                        <li><code>{{user.first_name}}</code></li>
+                        <li><code>{{user.last_name}}</code></li>
+                        <li><code>{{user.full_name}}</code></li>
+                        <li><code>{{user.email}}</code></li>
+                    </ul>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-success">{% trans "Organization Variables" %}</h6>
+                    <ul class="list-unstyled small">
+                        <li><code>{{organization.name}}</code></li>
+                        <li><code>{{organization.email}}</code></li>
+                        <li><code>{{organization.website}}</code></li>
+                        <li><code>{{organization.primary_color}}</code></li>
+                    </ul>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-info">{% trans "Assessment Variables" %}</h6>
+                    <ul class="list-unstyled small">
+                        <li><code>{{assessment.name}}</code></li>
+                        <li><code>{{assessment.url}}</code></li>
+                        <li><code>{{assessment.expires_at}}</code></li>
+                        <li><code>{{assessment.estimated_duration}}</code></li>
+                    </ul>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-warning">{% trans "PDI Variables" %}</h6>
+                    <ul class="list-unstyled small">
+                        <li><code>{{pdi_plan.title}}</code></li>
+                        <li><code>{{pdi_plan.url}}</code></li>
+                        <li><code>{{pdi_plan.progress}}</code></li>
+                        <li><code>{{pdi_plan.target_date}}</code></li>
+                    </ul>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-secondary">{% trans "System Variables" %}</h6>
+                    <ul class="list-unstyled small">
+                        <li><code>{{site_name}}</code></li>
+                        <li><code>{{site_url}}</code></li>
+                        <li><code>{{current_year}}</code></li>
+                        <li><code>{{unsubscribe_url}}</code></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Template Tips" %}</h5>
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="bi bi-lightbulb text-warning"></i>
+                        {% trans "Use inline CSS for better email client compatibility" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-palette text-info"></i>
+                        {% trans "Use organization.primary_color for branding" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-phone text-success"></i>
+                        {% trans "Design for mobile devices first" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-primary"></i>
+                        {% trans "Always include unsubscribe link" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-eye text-secondary"></i>
+                        {% trans "Test templates before using in campaigns" %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        {% if object %}
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Template Usage" %}</h5>
+                    <ul class="list-unstyled">
+                        <li><strong>{% trans "Messages Sent:" %}</strong> {{ object.messages.count }}</li>
+                        <li><strong>{% trans "Campaigns:" %}</strong> {{ object.campaigns.count }}</li>
+                        <li><strong>{% trans "Language:" %}</strong> {{ object.get_language_display }}</li>
+                        <li><strong>{% trans "Created:" %}</strong> {{ object.created_at|date:"M d, Y" }}</li>
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{% trans "Template Preview" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="previewContent">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">{% trans "Loading..." %}</span>
+                        </div>
+                        <p class="mt-2">{% trans "Generating preview..." %}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function previewTemplate() {
+    const subject = document.getElementById('id_subject').value;
+    const htmlContent = document.getElementById('id_html_content').value;
+    
+    if (!subject || !htmlContent) {
+        alert('{% trans "Please fill in subject and HTML content before previewing." %}');
+        return;
+    }
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+    modal.show();
+    
+    // Sample context data
+    const contextData = {
+        user: {
+            first_name: 'John',
+            last_name: 'Doe',
+            full_name: 'John Doe',
+            email: 'john.doe@example.com'
+        },
+        organization: {
+            name: '{{ current_tenant.name|default:"Sample Organization" }}',
+            primary_color: '{{ current_tenant.primary_color|default:"#007bff" }}'
+        },
+        assessment: {
+            name: 'Sample Assessment',
+            url: 'https://example.com/assessment/123',
+            expires_at: new Date(Date.now() + 7*24*60*60*1000).toLocaleDateString(),
+            estimated_duration: 15
+        },
+        site_name: 'Psychological Assessments Platform',
+        site_url: 'https://example.com',
+        current_year: new Date().getFullYear(),
+        unsubscribe_url: 'https://example.com/unsubscribe/token'
+    };
+    
+    // Simple template rendering (basic variable replacement)
+    let renderedSubject = subject;
+    let renderedHtml = htmlContent;
+    
+    // Replace variables in subject
+    renderedSubject = renderedSubject.replace(/\{\{user\.first_name\}\}/g, contextData.user.first_name);
+    renderedSubject = renderedSubject.replace(/\{\{user\.full_name\}\}/g, contextData.user.full_name);
+    renderedSubject = renderedSubject.replace(/\{\{organization\.name\}\}/g, contextData.organization.name);
+    renderedSubject = renderedSubject.replace(/\{\{assessment\.name\}\}/g, contextData.assessment.name);
+    
+    // Replace variables in HTML (basic replacement)
+    Object.keys(contextData).forEach(key => {
+        if (typeof contextData[key] === 'object') {
+            Object.keys(contextData[key]).forEach(subKey => {
+                const pattern = new RegExp(`\\{\\{${key}\\.${subKey}\\}\\}`, 'g');
+                renderedHtml = renderedHtml.replace(pattern, contextData[key][subKey]);
+            });
+        } else {
+            const pattern = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+            renderedHtml = renderedHtml.replace(pattern, contextData[key]);
+        }
+    });
+    
+    // Display preview
+    document.getElementById('previewContent').innerHTML = `
+        <div class="mb-3">
+            <strong>{% trans "Subject:" %}</strong>
+            <div class="alert alert-light">${renderedSubject}</div>
+        </div>
+        <div>
+            <strong>{% trans "HTML Content:" %}</strong>
+            <div class="border p-3" style="max-height: 400px; overflow-y: auto;">
+                ${renderedHtml}
+            </div>
+        </div>
+    `;
+}
+
+// Auto-resize textareas
+document.addEventListener('DOMContentLoaded', function() {
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    });
+});
+</script>
+{% endblock %}

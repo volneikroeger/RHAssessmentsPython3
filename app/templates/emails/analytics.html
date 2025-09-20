@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Email Analytics" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Email Analytics" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'emails:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Dashboard" %}
+        </a>
+    </div>
+</div>
+
+<!-- Analytics Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        {{ filter_form.date_from }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ filter_form.date_to }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ filter_form.template_type }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ filter_form.status }}
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Metrics -->
+<div class="row mb-4">
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-primary">{{ metrics.total_emails }}</h4>
+                <small class="text-muted">{% trans "Total Emails" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-success">{{ metrics.delivery_rate|floatformat:1 }}%</h4>
+                <small class="text-muted">{% trans "Delivery Rate" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-info">{{ metrics.open_rate|floatformat:1 }}%</h4>
+                <small class="text-muted">{% trans "Open Rate" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-warning">{{ metrics.click_rate|floatformat:1 }}%</h4>
+                <small class="text-muted">{% trans "Click Rate" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-danger">{{ metrics.failure_rate|floatformat:1 }}%</h4>
+                <small class="text-muted">{% trans "Failure Rate" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-secondary">{{ metrics.sent_emails }}</h4>
+                <small class="text-muted">{% trans "Successfully Sent" %}</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Email Performance Trends" %}</h5>
+                <div class="chart-container">
+                    <canvas id="performanceTrendChart" width="800" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Status Distribution" %}</h5>
+                <div class="chart-container">
+                    <canvas id="statusChart" width="400" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template Performance -->
+{% if template_performance %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Template Performance" %}</h5>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Template" %}</th>
+                                    <th>{% trans "Type" %}</th>
+                                    <th>{% trans "Total Sent" %}</th>
+                                    <th>{% trans "Delivered" %}</th>
+                                    <th>{% trans "Opened" %}</th>
+                                    <th>{% trans "Clicked" %}</th>
+                                    <th>{% trans "Open Rate" %}</th>
+                                    <th>{% trans "Click Rate" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for perf in template_performance %}
+                                    <tr>
+                                        <td>{{ perf.template__name|default:"Unnamed" }}</td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ perf.template__template_type }}</span>
+                                        </td>
+                                        <td>{{ perf.total }}</td>
+                                        <td>{{ perf.delivered }}</td>
+                                        <td>{{ perf.opened }}</td>
+                                        <td>{{ perf.clicked }}</td>
+                                        <td>
+                                            {% if perf.delivered > 0 %}
+                                                {{ perf.opened|div:perf.delivered|mul:100|floatformat:1 }}%
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if perf.delivered > 0 %}
+                                                {{ perf.clicked|div:perf.delivered|mul:100|floatformat:1 }}%
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load analytics data
+    fetch('{% url "emails:analytics_api" %}?days=30')
+        .then(response => response.json())
+        .then(data => {
+            renderPerformanceChart(data.daily_metrics);
+            renderStatusChart();
+        })
+        .catch(error => {
+            console.error('Error loading analytics data:', error);
+        });
+});
+
+function renderPerformanceChart(dailyMetrics) {
+    const ctx = document.getElementById('performanceTrendChart').getContext('2d');
+    
+    const labels = dailyMetrics.map(d => new Date(d.date).toLocaleDateString());
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: '{% trans "Sent" %}',
+                    data: dailyMetrics.map(d => d.sent),
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: '{% trans "Delivered" %}',
+                    data: dailyMetrics.map(d => d.delivered),
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: '{% trans "Opened" %}',
+                    data: dailyMetrics.map(d => d.opened),
+                    borderColor: '#17a2b8',
+                    backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: '{% trans "Failed" %}',
+                    data: dailyMetrics.map(d => d.failed),
+                    borderColor: '#dc3545',
+                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+function renderStatusChart() {
+    const ctx = document.getElementById('statusChart').getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['{% trans "Delivered" %}', '{% trans "Opened" %}', '{% trans "Clicked" %}', '{% trans "Failed" %}'],
+            datasets: [{
+                data: [
+                    {{ metrics.delivered_emails }},
+                    {{ metrics.opened_emails }},
+                    {{ metrics.clicked_emails }},
+                    {{ metrics.failed_emails }}
+                ],
+                backgroundColor: ['#28a745', '#17a2b8', '#ffc107', '#dc3545']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

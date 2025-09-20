@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Unsubscribe" %} - Psychological Assessments Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-body p-4">
+                        <div class="text-center mb-4">
+                            <i class="bi bi-envelope-x display-4 text-warning"></i>
+                            <h2 class="mt-2">{% trans "Unsubscribe" %}</h2>
+                            {% if email %}
+                                <p class="text-muted">{{ email }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label class="form-label">{{ form.unsubscribe_type.label }}</label>
+                                {% for choice in form.unsubscribe_type %}
+                                    <div class="form-check mb-2">
+                                        {{ choice.tag }}
+                                        <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                            <strong>{{ choice.choice_label }}</strong>
+                                            <br>
+                                            <small class="text-muted">
+                                                {% if choice.choice_value == 'ALL' %}
+                                                    {% trans "You will not receive any emails from us." %}
+                                                {% elif choice.choice_value == 'MARKETING' %}
+                                                    {% trans "You will still receive important notifications." %}
+                                                {% elif choice.choice_value == 'NOTIFICATIONS' %}
+                                                    {% trans "You will still receive marketing emails." %}
+                                                {% endif %}
+                                            </small>
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                                {% if form.unsubscribe_type.errors %}
+                                    <div class="text-danger">{{ form.unsubscribe_type.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.reason.id_for_label }}" class="form-label">{{ form.reason.label }}</label>
+                                {{ form.reason }}
+                                {% if form.reason.errors %}
+                                    <div class="text-danger">{{ form.reason.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.feedback.id_for_label }}" class="form-label">{{ form.feedback.label }}</label>
+                                {{ form.feedback }}
+                                {% if form.feedback.errors %}
+                                    <div class="text-danger">{{ form.feedback.errors }}</div>
+                                {% endif %}
+                                <div class="form-text">{% trans "Help us improve by sharing your feedback." %}</div>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="bi bi-envelope-x"></i> {% trans "Unsubscribe" %}
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <div class="text-center mt-4">
+                            <small class="text-muted">
+                                {% trans "We're sorry to see you go. You can resubscribe at any time from your account settings." %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Email Dashboard" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Email Management" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'emails:test' %}" class="btn btn-outline-info">
+                <i class="bi bi-envelope-check"></i> {% trans "Test Email" %}
+            </a>
+            <a href="{% url 'emails:analytics' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-graph-up"></i> {% trans "Analytics" %}
+            </a>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'emails:bulk_email' %}" class="btn btn-success">
+                <i class="bi bi-send"></i> {% trans "Send Bulk Email" %}
+            </a>
+            <a href="{% url 'emails:template_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> {% trans "Create Template" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Email Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-primary">{{ email_stats.total_sent }}</h4>
+                <small class="text-muted">{% trans "Total Sent" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-success">{{ email_stats.sent_today }}</h4>
+                <small class="text-muted">{% trans "Sent Today" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-warning">{{ email_stats.pending_emails }}</h4>
+                <small class="text-muted">{% trans "Pending" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-danger">{{ email_stats.failed_emails }}</h4>
+                <small class="text-muted">{% trans "Failed" %}</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Summary -->
+{% if analytics_summary %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Email Performance" %}</h5>
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <h4 class="text-success">{{ analytics_summary.delivery_rate|floatformat:1 }}%</h4>
+                            <small class="text-muted">{% trans "Delivery Rate" %}</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h4 class="text-info">{{ analytics_summary.open_rate|floatformat:1 }}%</h4>
+                            <small class="text-muted">{% trans "Open Rate" %}</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h4 class="text-primary">{{ analytics_summary.click_rate|floatformat:1 }}%</h4>
+                            <small class="text-muted">{% trans "Click Rate" %}</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h4 class="text-warning">{{ analytics_summary.bounce_rate|floatformat:1 }}%</h4>
+                            <small class="text-muted">{% trans "Bounce Rate" %}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<div class="row">
+    <!-- Quick Actions -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Quick Actions" %}</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-primary">
+                            <div class="card-body text-center">
+                                <i class="bi bi-send display-4 text-primary"></i>
+                                <h6 class="mt-2">{% trans "Send Bulk Email" %}</h6>
+                                <p class="small text-muted">{% trans "Send emails to multiple recipients" %}</p>
+                                <a href="{% url 'emails:bulk_email' %}" class="btn btn-outline-primary btn-sm">
+                                    {% trans "Start Campaign" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-success">
+                            <div class="card-body text-center">
+                                <i class="bi bi-file-earmark-text display-4 text-success"></i>
+                                <h6 class="mt-2">{% trans "Create Template" %}</h6>
+                                <p class="small text-muted">{% trans "Design custom email templates" %}</p>
+                                <a href="{% url 'emails:template_create' %}" class="btn btn-outline-success btn-sm">
+                                    {% trans "Create Template" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-info">
+                            <div class="card-body text-center">
+                                <i class="bi bi-envelope-check display-4 text-info"></i>
+                                <h6 class="mt-2">{% trans "Test Email" %}</h6>
+                                <p class="small text-muted">{% trans "Test templates before sending" %}</p>
+                                <a href="{% url 'emails:test' %}" class="btn btn-outline-info btn-sm">
+                                    {% trans "Send Test" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <i class="bi bi-graph-up display-4 text-warning"></i>
+                                <h6 class="mt-2">{% trans "View Analytics" %}</h6>
+                                <p class="small text-muted">{% trans "Email performance metrics" %}</p>
+                                <a href="{% url 'emails:analytics' %}" class="btn btn-outline-warning btn-sm">
+                                    {% trans "View Analytics" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Emails -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">{% trans "Recent Emails" %}</h5>
+                    <a href="{% url 'emails:message_list' %}" class="btn btn-outline-primary btn-sm">
+                        {% trans "View All" %}
+                    </a>
+                </div>
+                
+                {% for message in recent_emails %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">
+                                <a href="{% url 'emails:message_detail' message.pk %}" class="text-decoration-none">
+                                    {{ message.subject }}
+                                </a>
+                            </h6>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <small class="text-muted">{% trans "To:" %} {{ message.to_email }}</small>
+                                {% if message.status == 'SENT' %}
+                                    <span class="badge bg-success">{{ message.get_status_display }}</span>
+                                {% elif message.status == 'DELIVERED' %}
+                                    <span class="badge bg-primary">{{ message.get_status_display }}</span>
+                                {% elif message.status == 'OPENED' %}
+                                    <span class="badge bg-info">{{ message.get_status_display }}</span>
+                                {% elif message.status == 'FAILED' %}
+                                    <span class="badge bg-danger">{{ message.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ message.get_status_display }}</span>
+                                {% endif %}
+                            </div>
+                            {% if message.template %}
+                                <small class="text-muted">
+                                    <i class="bi bi-tag"></i> {{ message.template.get_template_type_display }}
+                                </small>
+                            {% endif %}
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted">{{ message.created_at|date:"M d, g:i A" }}</small>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-envelope display-4 text-muted"></i>
+                        <p class="mt-2 text-muted">{% trans "No emails sent yet." %}</p>
+                        <a href="{% url 'emails:bulk_email' %}" class="btn btn-primary">
+                            {% trans "Send Your First Email" %}
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <!-- Active Campaigns -->
+        {% if active_campaigns %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-broadcast"></i> {% trans "Active Campaigns" %}
+                    </h5>
+                    
+                    {% for campaign in active_campaigns %}
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <div class="fw-medium">
+                                    <a href="{% url 'emails:campaign_detail' campaign.pk %}" class="text-decoration-none">
+                                        {{ campaign.name }}
+                                    </a>
+                                </div>
+                                <small class="text-muted">{{ campaign.total_recipients }} {% trans "recipients" %}</small>
+                            </div>
+                            <div class="text-end">
+                                {% if campaign.status == 'SENDING' %}
+                                    <span class="badge bg-warning">{{ campaign.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-info">{{ campaign.get_status_display }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Email Templates -->
+        <div class="card {% if active_campaigns %}mt-3{% endif %}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">{% trans "Email Templates" %}</h5>
+                    <a href="{% url 'emails:template_list' %}" class="btn btn-outline-primary btn-sm">
+                        {% trans "View All" %}
+                    </a>
+                </div>
+                
+                {% for template in templates %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <div>
+                            <div class="fw-medium">
+                                <a href="{% url 'emails:template_detail' template.pk %}" class="text-decoration-none">
+                                    {{ template.name }}
+                                </a>
+                            </div>
+                            <small class="text-muted">{{ template.get_template_type_display }}</small>
+                        </div>
+                        <div>
+                            {% if template.is_default %}
+                                <span class="badge bg-primary">{% trans "Default" %}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-3">
+                        <i class="bi bi-file-earmark-text text-muted"></i>
+                        <p class="text-muted mb-0">{% trans "No templates yet." %}</p>
+                        <a href="{% url 'emails:template_create' %}" class="btn btn-primary btn-sm mt-2">
+                            {% trans "Create First Template" %}
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Quick Links -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Management" %}</h5>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'emails:message_list' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-envelope"></i> {% trans "All Messages" %}
+                    </a>
+                    <a href="{% url 'emails:campaign_list' %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-broadcast"></i> {% trans "Campaigns" %}
+                    </a>
+                    <a href="{% url 'emails:template_list' %}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-file-earmark-text"></i> {% trans "Templates" %}
+                    </a>
+                    <a href="{% url 'emails:subscriptions' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-gear"></i> {% trans "Preferences" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Email Tips -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Email Best Practices" %}</h5>
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        {% trans "Use clear, descriptive subject lines" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        {% trans "Test templates before sending campaigns" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        {% trans "Personalize content with user data" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        {% trans "Monitor delivery and open rates" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        {% trans "Respect unsubscribe requests" %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

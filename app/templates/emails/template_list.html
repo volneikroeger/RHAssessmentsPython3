@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Email Templates" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Email Templates" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'emails:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> {% trans "Back to Dashboard" %}
+            </a>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'emails:preview' %}" class="btn btn-outline-info">
+                <i class="bi bi-eye"></i> {% trans "Preview" %}
+            </a>
+            <a href="{% url 'emails:template_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> {% trans "Create Template" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Templates Grid -->
+<div class="row">
+    {% for template in templates %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 template-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary text-white rounded d-flex align-items-center justify-content-center me-3" 
+                             style="width: 48px; height: 48px;">
+                            <i class="bi bi-envelope"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0">{{ template.name }}</h5>
+                            <small class="text-muted">{{ template.get_template_type_display }}</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>{% trans "Subject:" %}</strong>
+                        <p class="small text-muted mb-2">{{ template.subject|truncatechars:60 }}</p>
+                        
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-info">{{ template.get_language_display }}</span>
+                            {% if template.is_default %}
+                                <span class="badge bg-primary">{% trans "Default" %}</span>
+                            {% endif %}
+                            {% if template.is_active %}
+                                <span class="badge bg-success">{% trans "Active" %}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Template Info -->
+                    <div class="row text-center mb-3">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h6 class="text-primary">{{ template.messages.count }}</h6>
+                                <small class="text-muted">{% trans "Messages Sent" %}</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-success">{{ template.campaigns.count }}</h6>
+                            <small class="text-muted">{% trans "Campaigns" %}</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'emails:template_detail' template.pk %}" class="btn btn-outline-primary btn-sm">
+                                {% trans "View" %}
+                            </a>
+                            <a href="{% url 'emails:template_update' template.pk %}" class="btn btn-outline-secondary btn-sm">
+                                {% trans "Edit" %}
+                            </a>
+                        </div>
+                        
+                        {% if template.from_email %}
+                            <small class="text-muted">{{ template.from_name|default:template.from_email }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-transparent">
+                    <small class="text-muted">
+                        {% trans "Created" %} {{ template.created_at|date:"M d, Y" }}
+                        {% if template.created_by %}
+                            {% trans "by" %} {{ template.created_by.full_name }}
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-file-earmark-text display-1 text-muted"></i>
+                <h3 class="mt-3">{% trans "No Email Templates Yet" %}</h3>
+                <p class="text-muted">
+                    {% trans "Create email templates to customize your organization's communications." %}
+                </p>
+                <a href="{% url 'emails:template_create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> {% trans "Create First Template" %}
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Template Types Info -->
+{% if templates %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Template Types" %}</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6 class="text-primary">{% trans "Assessment Templates" %}</h6>
+                            <ul class="small text-muted">
+                                <li>Assessment Invitations</li>
+                                <li>Assessment Reminders</li>
+                                <li>Completion Notifications</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-success">{% trans "PDI Templates" %}</h6>
+                            <ul class="small text-muted">
+                                <li>Plan Created</li>
+                                <li>Plan Approved</li>
+                                <li>Task Reminders</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-info">{% trans "System Templates" %}</h6>
+                            <ul class="small text-muted">
+                                <li>Welcome Emails</li>
+                                <li>Organization Invites</li>
+                                <li>Password Reset</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.template-card {
+    transition: transform 0.2s;
+}
+
+.template-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}

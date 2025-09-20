@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Send Bulk Email" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Send Bulk Email" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'emails:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Dashboard" %}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Bulk Email Configuration" %}</h5>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.template.id_for_label }}" class="form-label">{{ form.template.label }} *</label>
+                        {{ form.template }}
+                        {% if form.template.errors %}
+                            <div class="text-danger">{{ form.template.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">{% trans "Choose the email template to use for this campaign." %}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.recipient_type.id_for_label }}" class="form-label">{{ form.recipient_type.label }} *</label>
+                        {{ form.recipient_type }}
+                        {% if form.recipient_type.errors %}
+                            <div class="text-danger">{{ form.recipient_type.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Role Selection -->
+                    <div id="rolesSection" class="mb-3" style="display: none;">
+                        <label class="form-label">{{ form.roles.label }}</label>
+                        <div class="border rounded p-3">
+                            {% for choice in form.roles %}
+                                <div class="form-check">
+                                    {{ choice.tag }}
+                                    <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                        {{ choice.choice_label }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if form.roles.errors %}
+                            <div class="text-danger">{{ form.roles.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Department Selection -->
+                    {% if form.departments %}
+                        <div id="departmentsSection" class="mb-3" style="display: none;">
+                            <label class="form-label">{{ form.departments.label }}</label>
+                            <div class="border rounded p-3">
+                                {% for choice in form.departments %}
+                                    <div class="form-check">
+                                        {{ choice.tag }}
+                                        <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                            {{ choice.choice_label }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            {% if form.departments.errors %}
+                                <div class="text-danger">{{ form.departments.errors }}</div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Custom Email List -->
+                    <div id="customEmailsSection" class="mb-3" style="display: none;">
+                        <label for="{{ form.custom_emails.id_for_label }}" class="form-label">{{ form.custom_emails.label }}</label>
+                        {{ form.custom_emails }}
+                        {% if form.custom_emails.errors %}
+                            <div class="text-danger">{{ form.custom_emails.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">{{ form.custom_emails.help_text }}</div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6 class="text-primary">{% trans "Delivery Options" %}</h6>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.subject_override.id_for_label }}" class="form-label">{{ form.subject_override.label }}</label>
+                        {{ form.subject_override }}
+                        {% if form.subject_override.errors %}
+                            <div class="text-danger">{{ form.subject_override.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">{{ form.subject_override.help_text }}</div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                {{ form.send_immediately }}
+                                <label class="form-check-label" for="{{ form.send_immediately.id_for_label }}">
+                                    {{ form.send_immediately.label }}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6" id="scheduledSection" style="display: none;">
+                            <label for="{{ form.scheduled_for.id_for_label }}" class="form-label">{{ form.scheduled_for.label }}</label>
+                            {{ form.scheduled_for }}
+                            {% if form.scheduled_for.errors %}
+                                <div class="text-danger">{{ form.scheduled_for.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'emails:dashboard' %}" class="btn btn-outline-secondary me-md-2">
+                            {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send"></i> {% trans "Send Bulk Email" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Recipient Types" %}</h5>
+                
+                <div class="mb-3">
+                    <h6 class="text-primary">{% trans "All Members" %}</h6>
+                    <p class="small text-muted">
+                        {% trans "Send to all active members of your organization." %}
+                    </p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-success">{% trans "Specific Roles" %}</h6>
+                    <p class="small text-muted">
+                        {% trans "Target users with specific roles (HR, Managers, etc.)." %}
+                    </p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-info">{% trans "Department" %}</h6>
+                    <p class="small text-muted">
+                        {% trans "Send to members of specific departments." %}
+                    </p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-warning">{% trans "Custom List" %}</h6>
+                    <p class="small text-muted">
+                        {% trans "Provide your own list of email addresses." %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Best Practices" %}</h5>
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        {% trans "Test your template before sending" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-clock text-info"></i>
+                        {% trans "Schedule emails for optimal times" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-people text-primary"></i>
+                        {% trans "Segment your audience appropriately" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-graph-up text-warning"></i>
+                        {% trans "Monitor delivery and engagement rates" %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Delivery Information" %}</h5>
+                <ul class="list-unstyled small">
+                    <li class="mb-1">
+                        <strong>{% trans "Batch Size:" %}</strong> {% trans "Emails sent per batch" %}
+                    </li>
+                    <li class="mb-1">
+                        <strong>{% trans "Delay:" %}</strong> {% trans "Time between batches" %}
+                    </li>
+                    <li class="mb-1">
+                        <strong>{% trans "Tracking:" %}</strong> {% trans "Open and click tracking included" %}
+                    </li>
+                    <li class="mb-1">
+                        <strong>{% trans "Unsubscribe:" %}</strong> {% trans "Automatic unsubscribe links" %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const recipientTypeSelect = document.getElementById('id_recipient_type');
+    const rolesSection = document.getElementById('rolesSection');
+    const departmentsSection = document.getElementById('departmentsSection');
+    const customEmailsSection = document.getElementById('customEmailsSection');
+    const sendImmediatelyCheck = document.getElementById('id_send_immediately');
+    const scheduledSection = document.getElementById('scheduledSection');
+    
+    function updateRecipientSections() {
+        const selectedType = recipientTypeSelect.value;
+        
+        // Hide all sections
+        rolesSection.style.display = 'none';
+        if (departmentsSection) departmentsSection.style.display = 'none';
+        customEmailsSection.style.display = 'none';
+        
+        // Show relevant section
+        if (selectedType === 'specific_roles') {
+            rolesSection.style.display = 'block';
+        } else if (selectedType === 'department' && departmentsSection) {
+            departmentsSection.style.display = 'block';
+        } else if (selectedType === 'custom_list') {
+            customEmailsSection.style.display = 'block';
+        }
+    }
+    
+    function updateSchedulingSection() {
+        if (sendImmediatelyCheck.checked) {
+            scheduledSection.style.display = 'none';
+        } else {
+            scheduledSection.style.display = 'block';
+        }
+    }
+    
+    // Event listeners
+    recipientTypeSelect.addEventListener('change', updateRecipientSections);
+    sendImmediatelyCheck.addEventListener('change', updateSchedulingSection);
+    
+    // Initialize
+    updateRecipientSections();
+    updateSchedulingSection();
+});
+</script>
+{% endblock %}
