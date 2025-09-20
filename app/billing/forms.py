@@ -4,7 +4,7 @@ Forms for billing app.
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
-from .models import Plan, Subscription, BillingAddress, PaymentMethod, Coupon, UsageMeter
+from .models import Plan, Subscription, BillingAddress, PaymentMethod, Coupon
 
 User = get_user_model()
 
@@ -180,7 +180,7 @@ class UsageReportForm(forms.Form):
     )
     
     usage_types = forms.MultipleChoiceField(
-        choices=UsageMeter.USAGE_TYPES,
+        choices=[],  # Will be set in __init__
         widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
         label=_('Usage Types'),
         required=False
@@ -195,6 +195,12 @@ class UsageReportForm(forms.Form):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
+        # Import UsageMeter here to avoid circular import issues
+        from .models import UsageMeter
+        
+        # Set choices dynamically
+        self.fields['usage_types'].choices = UsageMeter.USAGE_TYPES
         
         # Set default date range (last 30 days)
         from django.utils import timezone
