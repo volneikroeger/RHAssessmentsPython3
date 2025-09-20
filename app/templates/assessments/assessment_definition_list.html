@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Assessments" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Psychological Assessments" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'assessments:instances' %}" class="btn btn-outline-info">
+                <i class="bi bi-list-check"></i> {% trans "View Instances" %}
+            </a>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'assessments:create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> {% trans "Create Assessment" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        {{ search_form.search }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ search_form.framework }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ search_form.status }}
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-search"></i> {% trans "Search" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assessments Grid -->
+<div class="row">
+    {% for assessment in assessments %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 assessment-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary text-white rounded d-flex align-items-center justify-content-center me-3" 
+                             style="width: 48px; height: 48px;">
+                            <i class="bi bi-clipboard-check"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0">{{ assessment.name }}</h5>
+                            <small class="text-muted">{{ assessment.get_framework_display }}</small>
+                        </div>
+                    </div>
+                    
+                    {% if assessment.description %}
+                        <p class="card-text">{{ assessment.description|truncatewords:15 }}</p>
+                    {% endif %}
+                    
+                    <div class="row text-center mb-3">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h6 class="text-primary">{{ assessment.question_count }}</h6>
+                                <small class="text-muted">{% trans "Questions" %}</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-success">{{ assessment.estimated_duration }}</h6>
+                            <small class="text-muted">{% trans "Minutes" %}</small>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'assessments:detail' assessment.pk %}" class="btn btn-outline-primary btn-sm">
+                                {% trans "View" %}
+                            </a>
+                            <a href="{% url 'assessments:update' assessment.pk %}" class="btn btn-outline-secondary btn-sm">
+                                {% trans "Edit" %}
+                            </a>
+                        </div>
+                        
+                        {% if assessment.status == 'ACTIVE' %}
+                            <span class="badge bg-success">{% trans "Active" %}</span>
+                        {% elif assessment.status == 'DRAFT' %}
+                            <span class="badge bg-warning">{% trans "Draft" %}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{% trans "Archived" %}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-transparent">
+                    <small class="text-muted">
+                        {% trans "Created" %} {{ assessment.created_at|date:"M d, Y" }}
+                        {% if assessment.created_by %}
+                            {% trans "by" %} {{ assessment.created_by.full_name }}
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-clipboard-check display-1 text-muted"></i>
+                <h3 class="mt-3">{% trans "No Assessments Yet" %}</h3>
+                <p class="text-muted">
+                    {% trans "Create your first psychological assessment to get started." %}
+                </p>
+                <a href="{% url 'assessments:create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> {% trans "Create First Assessment" %}
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+    <nav aria-label="{% trans 'Assessments pagination' %}">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.framework %}&framework={{ request.GET.framework }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                        {% trans "First" %}
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.framework %}&framework={{ request.GET.framework }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                        {% trans "Previous" %}
+                    </a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">
+                    {% trans "Page" %} {{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.framework %}&framework={{ request.GET.framework }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                        {% trans "Next" %}
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.framework %}&framework={{ request.GET.framework }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                        {% trans "Last" %}
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+
+{% if assessments %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Quick Actions" %}</h5>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{% url 'assessments:create' %}" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="bi bi-plus-circle"></i> {% trans "Create Assessment" %}
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'assessments:instances' %}" class="btn btn-outline-info w-100 mb-2">
+                                <i class="bi bi-list-check"></i> {% trans "View All Instances" %}
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-outline-success w-100 mb-2" disabled>
+                                <i class="bi bi-download"></i> {% trans "Export Results" %}
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-outline-secondary w-100 mb-2" disabled>
+                                <i class="bi bi-bar-chart"></i> {% trans "Analytics" %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

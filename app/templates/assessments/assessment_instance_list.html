@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Assessment Instances" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Assessment Instances" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'assessments:list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Assessments" %}
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h4 class="text-primary">{{ instances.count }}</h4>
+                        <small class="text-muted">{% trans "Total Instances" %}</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-success">{{ instances|length }}</h4>
+                        <small class="text-muted">{% trans "Completed" %}</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning">0</h4>
+                        <small class="text-muted">{% trans "In Progress" %}</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-info">0</h4>
+                        <small class="text-muted">{% trans "Pending" %}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>{% trans "User" %}</th>
+                                <th>{% trans "Assessment" %}</th>
+                                <th>{% trans "Status" %}</th>
+                                <th>{% trans "Progress" %}</th>
+                                <th>{% trans "Invited" %}</th>
+                                <th>{% trans "Completed" %}</th>
+                                <th>{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for instance in instances %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                             style="width: 32px; height: 32px; font-size: 12px;">
+                                            {{ instance.user.first_name|first|default:instance.user.email|first|upper }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-medium">{{ instance.user.full_name|default:instance.user.email }}</div>
+                                            <small class="text-muted">{{ instance.user.email }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <div class="fw-medium">{{ instance.assessment.name }}</div>
+                                        <small class="text-muted">{{ instance.assessment.get_framework_display }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if instance.status == 'COMPLETED' %}
+                                        <span class="badge bg-success">{{ instance.get_status_display }}</span>
+                                    {% elif instance.status == 'IN_PROGRESS' %}
+                                        <span class="badge bg-warning">{{ instance.get_status_display }}</span>
+                                    {% elif instance.status == 'STARTED' %}
+                                        <span class="badge bg-info">{{ instance.get_status_display }}</span>
+                                    {% elif instance.status == 'EXPIRED' %}
+                                        <span class="badge bg-danger">{{ instance.get_status_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ instance.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="progress" style="height: 6px; width: 80px;">
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: {{ instance.progress_percentage }}%" 
+                                             aria-valuenow="{{ instance.progress_percentage }}" 
+                                             aria-valuemin="0" aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">{{ instance.progress_percentage|floatformat:0 }}%</small>
+                                </td>
+                                <td>
+                                    {{ instance.invited_at|date:"M d, Y" }}
+                                    <br><small class="text-muted">
+                                        {% if instance.invited_by %}
+                                            {% trans "by" %} {{ instance.invited_by.full_name }}
+                                        {% endif %}
+                                    </small>
+                                </td>
+                                <td>
+                                    {% if instance.completed_at %}
+                                        {{ instance.completed_at|date:"M d, Y" }}
+                                        <br><small class="text-muted">{{ instance.completed_at|time:"g:i A" }}</small>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        {% if instance.is_completed %}
+                                            <a href="{% url 'assessments:result' instance.token %}" class="btn btn-outline-primary btn-sm">
+                                                {% trans "View Results" %}
+                                            </a>
+                                        {% elif not instance.is_expired %}
+                                            <a href="{% url 'assessments:take' instance.token %}" class="btn btn-outline-success btn-sm">
+                                                {% trans "Continue" %}
+                                            </a>
+                                        {% endif %}
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" disabled>
+                                            {% trans "Resend" %}
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center py-5">
+                                    <i class="bi bi-list-check display-4 text-muted"></i>
+                                    <h4 class="mt-3">{% trans "No Assessment Instances" %}</h4>
+                                    <p class="text-muted">
+                                        {% trans "No assessment instances have been created yet." %}
+                                    </p>
+                                    <a href="{% url 'assessments:list' %}" class="btn btn-primary">
+                                        <i class="bi bi-plus-circle"></i> {% trans "Send First Assessment" %}
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+    <nav aria-label="{% trans 'Assessment instances pagination' %}">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">{% trans "First" %}</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans "Previous" %}</a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">
+                    {% trans "Page" %} {{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans "Next" %}</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">{% trans "Last" %}</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %}

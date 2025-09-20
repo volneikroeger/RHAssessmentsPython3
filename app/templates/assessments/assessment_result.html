@@ -1,0 +1,300 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Assessment Results" %} - {{ assessment.name }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <div class="d-flex align-items-center justify-content-center mb-3">
+                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                         style="width: 64px; height: 64px; font-size: 24px;">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <div>
+                        <h1 class="h3 mb-0">{% trans "Assessment Completed!" %}</h1>
+                        <p class="text-muted mb-0">{{ assessment.name }}</p>
+                    </div>
+                </div>
+                
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <h5 class="text-primary">{{ assessment.get_framework_display }}</h5>
+                        <small class="text-muted">{% trans "Framework" %}</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h5 class="text-success">{{ responses.count }}</h5>
+                        <small class="text-muted">{% trans "Questions Answered" %}</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h5 class="text-info">{{ instance.completed_at|date:"M d, Y" }}</h5>
+                        <small class="text-muted">{% trans "Completed On" %}</small>
+                    </div>
+                    <div class="col-md-3">
+                        <h5 class="text-warning">100%</h5>
+                        <small class="text-muted">{% trans "Progress" %}</small>
+                    </div>
+                </div>
+            </div>
+            
+            {% if score_profile %}
+                <!-- Score Profile Results -->
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="bi bi-bar-chart"></i> {% trans "Your Results" %}
+                                </h5>
+                                
+                                {% if score_profile.dimension_scores %}
+                                    <div class="mb-4">
+                                        <h6>{% trans "Dimension Scores" %}</h6>
+                                        {% for dimension, score in score_profile.dimension_scores.items %}
+                                            <div class="mb-3">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <span class="fw-medium">{{ dimension|title }}</span>
+                                                    <span class="badge bg-primary">{{ score|floatformat:1 }}/7.0</span>
+                                                </div>
+                                                <div class="progress" style="height: 8px;">
+                                                    <div class="progress-bar" role="progressbar" 
+                                                         style="width: {{ score|floatformat:1|add:'0'|mul:'14.28' }}%" 
+                                                         aria-valuenow="{{ score }}" 
+                                                         aria-valuemin="0" aria-valuemax="7">
+                                                    </div>
+                                                </div>
+                                                {% if score_profile.percentile_scores %}
+                                                    <small class="text-muted">
+                                                        {% trans "Percentile:" %} {{ score_profile.percentile_scores|get_item:dimension|floatformat:0 }}%
+                                                    </small>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                
+                                {% if score_profile.profile_type %}
+                                    <div class="alert alert-info">
+                                        <h6><i class="bi bi-person-badge"></i> {% trans "Profile Type" %}</h6>
+                                        <p class="mb-0">{{ score_profile.profile_type }}</p>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if score_profile.strengths %}
+                                    <div class="mb-4">
+                                        <h6 class="text-success">
+                                            <i class="bi bi-star"></i> {% trans "Strengths" %}
+                                        </h6>
+                                        <ul class="list-unstyled">
+                                            {% for strength in score_profile.strengths %}
+                                                <li class="mb-2">
+                                                    <i class="bi bi-check-circle text-success"></i> {{ strength }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if score_profile.development_areas %}
+                                    <div class="mb-4">
+                                        <h6 class="text-warning">
+                                            <i class="bi bi-arrow-up-circle"></i> {% trans "Development Areas" %}
+                                        </h6>
+                                        <ul class="list-unstyled">
+                                            {% for area in score_profile.development_areas %}
+                                                <li class="mb-2">
+                                                    <i class="bi bi-arrow-up-circle text-warning"></i> {{ area }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if score_profile.recommendations %}
+                                    <div class="mb-4">
+                                        <h6 class="text-info">
+                                            <i class="bi bi-lightbulb"></i> {% trans "Recommendations" %}
+                                        </h6>
+                                        <ul class="list-unstyled">
+                                            {% for recommendation in score_profile.recommendations %}
+                                                <li class="mb-2">
+                                                    <i class="bi bi-lightbulb text-info"></i> {{ recommendation }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <!-- Chart Placeholder -->
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">{% trans "Visual Profile" %}</h5>
+                                <div class="text-center">
+                                    <canvas id="profileChart" width="300" height="300"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="card mt-3">
+                            <div class="card-body">
+                                <h5 class="card-title">{% trans "Actions" %}</h5>
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-outline-primary" disabled>
+                                        <i class="bi bi-download"></i> {% trans "Download PDF Report" %}
+                                    </button>
+                                    <button type="button" class="btn btn-outline-success" disabled>
+                                        <i class="bi bi-share"></i> {% trans "Share Results" %}
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info" disabled>
+                                        <i class="bi bi-graph-up"></i> {% trans "Generate PDI Plan" %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Assessment Info -->
+                        <div class="card mt-3">
+                            <div class="card-body">
+                                <h5 class="card-title">{% trans "Assessment Details" %}</h5>
+                                <ul class="list-unstyled small">
+                                    <li><strong>{% trans "Started:" %}</strong> {{ instance.started_at|date:"M d, Y g:i A" }}</li>
+                                    <li><strong>{% trans "Completed:" %}</strong> {{ instance.completed_at|date:"M d, Y g:i A" }}</li>
+                                    <li><strong>{% trans "Duration:" %}</strong> 
+                                        {% if instance.started_at and instance.completed_at %}
+                                            {{ instance.completed_at|timeuntil:instance.started_at }}
+                                        {% else %}
+                                            {% trans "N/A" %}
+                                        {% endif %}
+                                    </li>
+                                    <li><strong>{% trans "Questions:" %}</strong> {{ responses.count }}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <!-- No Score Profile Available -->
+                <div class="alert alert-warning text-center">
+                    <h5><i class="bi bi-exclamation-triangle"></i> {% trans "Results Processing" %}</h5>
+                    <p>{% trans "Your assessment results are being processed. Please check back in a few minutes." %}</p>
+                    <button type="button" class="btn btn-outline-primary" onclick="location.reload()">
+                        <i class="bi bi-arrow-clockwise"></i> {% trans "Refresh" %}
+                    </button>
+                </div>
+            {% endif %}
+            
+            <!-- Response Summary (Collapsible) -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <button class="btn btn-link p-0 text-decoration-none" type="button" 
+                                data-bs-toggle="collapse" data-bs-target="#responseSummary">
+                            <i class="bi bi-list-ul"></i> {% trans "View Your Responses" %}
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                    </h5>
+                    
+                    <div class="collapse" id="responseSummary">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "Question" %}</th>
+                                        <th>{% trans "Your Answer" %}</th>
+                                        <th>{% trans "Dimension" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for response in responses %}
+                                        <tr>
+                                            <td>{{ response.question.text|truncatewords:10 }}</td>
+                                            <td>
+                                                <span class="badge bg-secondary">{{ response.display_value }}</span>
+                                            </td>
+                                            <td>
+                                                {% if response.question.dimension %}
+                                                    <small class="text-muted">{{ response.question.dimension }}</small>
+                                                {% else %}
+                                                    <small class="text-muted">—</small>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer Actions -->
+            <div class="text-center mt-4 mb-5">
+                <a href="{% url 'dashboard:home' %}" class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-house"></i> {% trans "Back to Dashboard" %}
+                </a>
+                <a href="{% url 'assessments:list' %}" class="btn btn-primary">
+                    <i class="bi bi-clipboard-check"></i> {% trans "View All Assessments" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if score_profile and score_profile.dimension_scores %}
+        // Create radar chart
+        const ctx = document.getElementById('profileChart').getContext('2d');
+        
+        const dimensions = {{ score_profile.dimension_scores.keys|safe }};
+        const scores = {{ score_profile.dimension_scores.values|safe }};
+        
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: dimensions.map(d => d.charAt(0).toUpperCase() + d.slice(1)),
+                datasets: [{
+                    label: '{% trans "Your Scores" %}',
+                    data: scores,
+                    backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(13, 110, 253, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(13, 110, 253, 1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 7,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    {% endif %}
+});
+</script>
+{% endblock %}

@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Taking Assessment" %} - {{ assessment.name }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <h1 class="h3">{{ assessment.name }}</h1>
+                <p class="text-muted">{{ assessment.get_framework_display }}</p>
+                
+                <!-- Progress Bar -->
+                {% if assessment.show_progress %}
+                    <div class="progress mb-3" style="height: 8px;">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: {{ progress_percentage }}%" 
+                             aria-valuenow="{{ progress_percentage }}" 
+                             aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                    <small class="text-muted">
+                        {% trans "Progress:" %} {{ progress_percentage|floatformat:0 }}%
+                    </small>
+                {% endif %}
+            </div>
+            
+            <!-- Instructions (shown only at the beginning) -->
+            {% if assessment.instructions and progress_percentage == 0 %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-info-circle text-info"></i> {% trans "Instructions" %}
+                        </h5>
+                        <div class="card-text">
+                            {{ assessment.instructions|linebreaks }}
+                        </div>
+                        <div class="alert alert-light mt-3">
+                            <small>
+                                <i class="bi bi-clock"></i> 
+                                {% trans "Estimated time:" %} {{ assessment.estimated_duration }} {% trans "minutes" %}
+                                <br>
+                                <i class="bi bi-list-ol"></i> 
+                                {% trans "Total questions:" %} {{ questions.count }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Assessment Form -->
+            <form method="post" id="assessmentForm">
+                {% csrf_token %}
+                
+                <div class="card">
+                    <div class="card-body">
+                        {% for field in form %}
+                            <div class="mb-4 question-container" data-question-id="{{ field.question.id }}">
+                                <div class="d-flex align-items-start">
+                                    <div class="me-3">
+                                        <span class="badge bg-primary">{{ forloop.counter }}</span>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-3">{{ field.label }}</h6>
+                                        
+                                        {% if field.question.question_type == 'LIKERT_5' %}
+                                            <div class="likert-scale">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <small class="text-muted">{% trans "Strongly Disagree" %}</small>
+                                                    <small class="text-muted">{% trans "Strongly Agree" %}</small>
+                                                </div>
+                                                <div class="d-flex justify-content-between">
+                                                    {% for choice in field %}
+                                                        <div class="form-check text-center">
+                                                            {{ choice.tag }}
+                                                            <label class="form-check-label d-block" for="{{ choice.id_for_label }}">
+                                                                {{ choice.choice_label }}
+                                                            </label>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        {% elif field.question.question_type == 'LIKERT_7' %}
+                                            <div class="likert-scale">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <small class="text-muted">{% trans "Strongly Disagree" %}</small>
+                                                    <small class="text-muted">{% trans "Strongly Agree" %}</small>
+                                                </div>
+                                                <div class="d-flex justify-content-between">
+                                                    {% for choice in field %}
+                                                        <div class="form-check text-center">
+                                                            {{ choice.tag }}
+                                                            <label class="form-check-label d-block" for="{{ choice.id_for_label }}">
+                                                                {{ choice.choice_label }}
+                                                            </label>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        {% elif field.question.question_type == 'MULTIPLE_CHOICE' %}
+                                            <div class="multiple-choice">
+                                                {% for choice in field %}
+                                                    <div class="form-check mb-2">
+                                                        {{ choice.tag }}
+                                                        <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                                            {{ choice.choice_label }}
+                                                        </label>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% elif field.question.question_type == 'TEXT' %}
+                                            <div class="text-response">
+                                                {{ field }}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if field.errors %}
+                                            <div class="text-danger mt-2">
+                                                {{ field.errors }}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if field.question.dimension %}
+                                            <small class="text-muted">
+                                                <i class="bi bi-tag"></i> {{ field.question.dimension }}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if not forloop.last %}
+                                <hr>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="d-flex justify-content-between mt-4">
+                    <div>
+                        {% if progress_percentage > 0 %}
+                            <small class="text-muted">
+                                <i class="bi bi-save"></i> {% trans "Your progress is automatically saved" %}
+                            </small>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <button type="submit" name="action" value="save" class="btn btn-outline-primary me-2">
+                            <i class="bi bi-save"></i> {% trans "Save Progress" %}
+                        </button>
+                        <button type="submit" name="action" value="complete" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> {% trans "Complete Assessment" %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+            
+            <!-- Assessment Info -->
+            <div class="text-center mt-4">
+                <small class="text-muted">
+                    {% trans "Assessment expires on" %} {{ instance.expires_at|date:"F d, Y" }}
+                    {% if instance.expires_at %}
+                        <br>
+                        {% trans "Time remaining:" %} 
+                        <span id="timeRemaining" data-expires="{{ instance.expires_at|date:'c' }}"></span>
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.likert-scale .form-check-input {
+    margin: 0 auto;
+    display: block;
+}
+
+.likert-scale .form-check {
+    flex: 1;
+    max-width: 80px;
+}
+
+.question-container {
+    scroll-margin-top: 100px;
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+
+.progress-bar {
+    background-color: var(--primary-color, #007bff);
+    transition: width 0.3s ease;
+}
+
+.multiple-choice .form-check-input:checked + .form-check-label {
+    font-weight: 500;
+    color: var(--primary-color, #007bff);
+}
+
+.text-response textarea {
+    min-height: 100px;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-save functionality
+    let saveTimeout;
+    const form = document.getElementById('assessmentForm');
+    const inputs = form.querySelectorAll('input, textarea');
+    
+    inputs.forEach(input => {
+        input.addEventListener('change', function() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                // Auto-save logic would go here
+                console.log('Auto-saving...');
+            }, 2000);
+        });
+    });
+    
+    // Time remaining countdown
+    const timeRemainingElement = document.getElementById('timeRemaining');
+    if (timeRemainingElement) {
+        const expiresAt = new Date(timeRemainingElement.dataset.expires);
+        
+        function updateTimeRemaining() {
+            const now = new Date();
+            const diff = expiresAt - now;
+            
+            if (diff <= 0) {
+                timeRemainingElement.textContent = '{% trans "Expired" %}';
+                timeRemainingElement.className = 'text-danger';
+                return;
+            }
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            
+            let timeString = '';
+            if (days > 0) timeString += `${days}d `;
+            if (hours > 0) timeString += `${hours}h `;
+            timeString += `${minutes}m`;
+            
+            timeRemainingElement.textContent = timeString;
+            
+            if (diff < 24 * 60 * 60 * 1000) { // Less than 24 hours
+                timeRemainingElement.className = 'text-warning';
+            }
+            if (diff < 60 * 60 * 1000) { // Less than 1 hour
+                timeRemainingElement.className = 'text-danger';
+            }
+        }
+        
+        updateTimeRemaining();
+        setInterval(updateTimeRemaining, 60000); // Update every minute
+    }
+    
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('input[required], textarea[required]');
+        let hasErrors = false;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                hasErrors = true;
+                field.classList.add('is-invalid');
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+        
+        if (hasErrors && e.submitter.value === 'complete') {
+            e.preventDefault();
+            alert('{% trans "Please answer all required questions before completing the assessment." %}');
+        }
+    });
+    
+    // Smooth scrolling to first error
+    const firstError = document.querySelector('.is-invalid');
+    if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+});
+</script>
+{% endblock %}

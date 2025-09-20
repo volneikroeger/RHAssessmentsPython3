@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ assessment.name }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <div class="d-flex align-items-center">
+        <div class="bg-primary text-white rounded d-flex align-items-center justify-content-center me-3" 
+             style="width: 64px; height: 64px; font-size: 24px;">
+            <i class="bi bi-clipboard-check"></i>
+        </div>
+        <div>
+            <h1 class="h2 mb-0">{{ assessment.name }}</h1>
+            <p class="text-muted mb-0">{{ assessment.get_framework_display }} - {{ assessment.get_status_display }}</p>
+        </div>
+    </div>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'assessments:list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> {% trans "Back to Assessments" %}
+            </a>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'assessments:update' assessment.pk %}" class="btn btn-outline-primary">
+                <i class="bi bi-pencil"></i> {% trans "Edit" %}
+            </a>
+            <a href="{% url 'assessments:invite' assessment.pk %}" class="btn btn-success">
+                <i class="bi bi-send"></i> {% trans "Send Invitations" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Assessment Information" %}</h5>
+                
+                {% if assessment.description %}
+                    <p class="card-text">{{ assessment.description }}</p>
+                {% endif %}
+                
+                {% if assessment.instructions %}
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-info-circle"></i> {% trans "Instructions" %}</h6>
+                        <p class="mb-0">{{ assessment.instructions|linebreaks }}</p>
+                    </div>
+                {% endif %}
+                
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>{% trans "Framework:" %}</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ assessment.get_framework_display }}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>{% trans "Version:" %}</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ assessment.version }}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>{% trans "Status:" %}</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {% if assessment.status == 'ACTIVE' %}
+                            <span class="badge bg-success">{{ assessment.get_status_display }}</span>
+                        {% elif assessment.status == 'DRAFT' %}
+                            <span class="badge bg-warning">{{ assessment.get_status_display }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ assessment.get_status_display }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>{% trans "Duration:" %}</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ assessment.estimated_duration }} {% trans "minutes" %}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>{% trans "Questions:" %}</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ assessment.question_count }}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>{% trans "Created:" %}</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ assessment.created_at|date:"F d, Y" }}
+                        {% if assessment.created_by %}
+                            {% trans "by" %} {{ assessment.created_by.full_name }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Questions Preview -->
+        {% if questions %}
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Questions Preview" %}</h5>
+                    <div class="accordion" id="questionsAccordion">
+                        {% for question in questions|slice:":5" %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="heading{{ question.id }}">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#collapse{{ question.id }}">
+                                        {% trans "Question" %} {{ question.order }}: {{ question.text|truncatewords:10 }}
+                                    </button>
+                                </h2>
+                                <div id="collapse{{ question.id }}" class="accordion-collapse collapse" 
+                                     data-bs-parent="#questionsAccordion">
+                                    <div class="accordion-body">
+                                        <p><strong>{% trans "Full Question:" %}</strong> {{ question.text }}</p>
+                                        <p><strong>{% trans "Type:" %}</strong> {{ question.get_question_type_display }}</p>
+                                        {% if question.dimension %}
+                                            <p><strong>{% trans "Dimension:" %}</strong> {{ question.dimension }}</p>
+                                        {% endif %}
+                                        {% if question.options.exists %}
+                                            <p><strong>{% trans "Options:" %}</strong></p>
+                                            <ul>
+                                                {% for option in question.options.all %}
+                                                    <li>{{ option.text }} ({{ option.value }})</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        {% if questions.count > 5 %}
+                            <div class="text-center mt-3">
+                                <small class="text-muted">
+                                    {% trans "Showing first 5 questions. Total:" %} {{ questions.count }}
+                                </small>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Take Assessment -->
+        {% if can_take_assessment %}
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">{% trans "Take This Assessment" %}</h5>
+                    <p class="card-text">
+                        {% trans "Complete this psychological assessment to get your personalized results." %}
+                    </p>
+                    <button type="button" class="btn btn-primary" disabled>
+                        <i class="bi bi-play-circle"></i> {% trans "Start Assessment" %}
+                    </button>
+                    <small class="text-muted d-block mt-2">
+                        {% trans "Feature coming soon" %}
+                    </small>
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Statistics -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Statistics" %}</h5>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-primary">{{ assessment.question_count }}</h4>
+                            <small class="text-muted">{% trans "Questions" %}</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">{{ assessment.instances.count }}</h4>
+                        <small class="text-muted">{% trans "Instances" %}</small>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-info">{{ assessment.instances.filter.status='COMPLETED'.count }}</h4>
+                            <small class="text-muted">{% trans "Completed" %}</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-warning">{{ assessment.instances.filter.status='IN_PROGRESS'.count }}</h4>
+                        <small class="text-muted">{% trans "In Progress" %}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Your Assessment History -->
+        {% if user_instances %}
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Your Assessment History" %}</h5>
+                    {% for instance in user_instances %}
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <small class="text-muted">{{ instance.invited_at|date:"M d, Y" }}</small>
+                                <br>
+                                {% if instance.status == 'COMPLETED' %}
+                                    <span class="badge bg-success">{{ instance.get_status_display }}</span>
+                                {% elif instance.status == 'IN_PROGRESS' %}
+                                    <span class="badge bg-warning">{{ instance.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ instance.get_status_display }}</span>
+                                {% endif %}
+                            </div>
+                            <div>
+                                {% if instance.is_completed %}
+                                    <a href="{% url 'assessments:result' instance.token %}" class="btn btn-sm btn-outline-primary">
+                                        {% trans "View Results" %}
+                                    </a>
+                                {% elif not instance.is_expired %}
+                                    <a href="{% url 'assessments:take' instance.token %}" class="btn btn-sm btn-outline-success">
+                                        {% trans "Continue" %}
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Quick Actions -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Quick Actions" %}</h5>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'assessments:invite' assessment.pk %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-send"></i> {% trans "Send Invitations" %}
+                    </a>
+                    <a href="{% url 'assessments:update' assessment.pk %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-pencil"></i> {% trans "Edit Assessment" %}
+                    </a>
+                    <button type="button" class="btn btn-outline-info btn-sm" disabled>
+                        <i class="bi bi-bar-chart"></i> {% trans "View Analytics" %}
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" disabled>
+                        <i class="bi bi-download"></i> {% trans "Export Results" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

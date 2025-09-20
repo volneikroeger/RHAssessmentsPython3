@@ -148,7 +148,7 @@
                             </li>
                             
                             <li class="nav-item">
-                                <a class="nav-link disabled" href="#">
+                                <a class="nav-link" href="{% url 'assessments:list' %}">
                                     <i class="bi bi-clipboard-check"></i> Assessments
                                 </a>
                             </li>
@@ -254,7 +254,7 @@
                         <ul class="nav flex-column">
                             {% if current_tenant.is_company %}
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark disabled" href="#">
+                                    <a class="nav-link text-dark" href="{% url 'assessments:list' %}">
                                         <i class="bi bi-plus-circle"></i> Send Assessment
                                     </a>
                                 </li>
