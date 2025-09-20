@@ -378,6 +378,7 @@ def generate_monthly_invoices():
                         subtotal += meter.overage_cost
                     
                     # Calculate tax (simplified - would be more complex in real implementation)
+                    from decimal import Decimal
                     tax_rate = Decimal('0.08')  # 8% tax rate
                     tax_amount = subtotal * tax_rate
                     
