@@ -9,7 +9,6 @@ from .models import (
 )
 
 
-@admin.register(Plan)
 class PlanAdmin(admin.ModelAdmin):
     list_display = ['name', 'plan_type', 'price_monthly', 'max_assessments_per_month', 'max_team_members', 'is_active', 'is_public']
     list_filter = ['plan_type', 'is_active', 'is_public', 'includes_pdi', 'includes_recruiting']
@@ -59,7 +58,6 @@ class InvoiceInline(admin.TabularInline):
     readonly_fields = ['invoice_number', 'total_amount', 'paid_at']
 
 
-@admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
     list_display = ['organization', 'plan', 'status', 'billing_cycle', 'amount', 'current_period_end', 'provider']
     list_filter = ['status', 'billing_cycle', 'provider', 'plan', 'organization', 'created_at']
@@ -95,7 +93,6 @@ class SubscriptionAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(UsageMeter)
 class UsageMeterAdmin(admin.ModelAdmin):
     list_display = ['organization', 'usage_type', 'current_usage', 'limit', 'usage_percentage_display', 'is_over_limit']
     list_filter = ['usage_type', 'subscription__plan', 'organization', 'period_start']
@@ -131,7 +128,6 @@ class PaymentInline(admin.TabularInline):
     readonly_fields = ['created_at']
 
 
-@admin.register(Invoice)
 class InvoiceAdmin(admin.ModelAdmin):
     list_display = ['invoice_number', 'organization', 'status', 'total_amount', 'due_date', 'paid_at']
     list_filter = ['status', 'provider', 'organization', 'due_date', 'created_at']
@@ -163,7 +159,6 @@ class InvoiceAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(PaymentMethod)
 class PaymentMethodAdmin(admin.ModelAdmin):
     list_display = ['organization', 'method_type', 'masked_details', 'is_default', 'is_active', 'provider']
     list_filter = ['method_type', 'provider', 'is_default', 'is_active', 'organization']
@@ -179,7 +174,6 @@ class PaymentMethodAdmin(admin.ModelAdmin):
     masked_details.short_description = 'Details'
 
 
-@admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ['organization', 'amount', 'status', 'provider', 'invoice', 'created_at']
     list_filter = ['status', 'provider', 'organization', 'created_at']
@@ -207,7 +201,6 @@ class PaymentAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(WebhookEvent)
 class WebhookEventAdmin(admin.ModelAdmin):
     list_display = ['provider', 'event_type', 'status', 'retry_count', 'created_at']
     list_filter = ['provider', 'status', 'event_type', 'created_at']
@@ -245,7 +238,6 @@ class WebhookEventAdmin(admin.ModelAdmin):
     actions = [reprocess_webhook]
 
 
-@admin.register(BillingAddress)
 class BillingAddressAdmin(admin.ModelAdmin):
     list_display = ['organization', 'company_name', 'city', 'state', 'country', 'is_default']
     list_filter = ['country', 'state', 'is_default', 'organization']
@@ -253,7 +245,6 @@ class BillingAddressAdmin(admin.ModelAdmin):
     readonly_fields = ['id', 'created_at', 'updated_at']
 
 
-@admin.register(Coupon)
 class CouponAdmin(admin.ModelAdmin):
     list_display = ['code', 'name', 'discount_type', 'discount_value', 'uses_count', 'max_uses', 'is_valid_display', 'is_active']
     list_filter = ['discount_type', 'is_active', 'valid_from', 'valid_until']
@@ -296,7 +287,6 @@ class CouponAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
-@admin.register(CouponUsage)
 class CouponUsageAdmin(admin.ModelAdmin):
     list_display = ['coupon', 'organization', 'original_amount', 'discount_amount', 'final_amount', 'used_at']
     list_filter = ['coupon', 'organization', 'used_at']
@@ -304,7 +294,6 @@ class CouponUsageAdmin(admin.ModelAdmin):
     readonly_fields = ['used_at']
 
 
-@admin.register(BillingNotification)
 class BillingNotificationAdmin(admin.ModelAdmin):
     list_display = ['notification_type', 'recipient_email', 'status', 'scheduled_for', 'sent_at']
     list_filter = ['notification_type', 'status', 'organization', 'scheduled_for']
@@ -334,3 +323,17 @@ class BillingNotificationAdmin(admin.ModelAdmin):
     resend_notification.short_description = 'Resend selected notifications'
     
     actions = [resend_notification]
+
+
+# Register models with the admin site
+admin.site.register(Plan, PlanAdmin)
+admin.site.register(Subscription, SubscriptionAdmin)
+admin.site.register(UsageMeter, UsageMeterAdmin)
+admin.site.register(Invoice, InvoiceAdmin)
+admin.site.register(PaymentMethod, PaymentMethodAdmin)
+admin.site.register(Payment, PaymentAdmin)
+admin.site.register(WebhookEvent, WebhookEventAdmin)
+admin.site.register(BillingAddress, BillingAddressAdmin)
+admin.site.register(Coupon, CouponAdmin)
+admin.site.register(CouponUsage, CouponUsageAdmin)
+admin.site.register(BillingNotification, BillingNotificationAdmin)

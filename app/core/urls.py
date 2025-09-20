@@ -18,6 +18,7 @@ urlpatterns += i18n_patterns(
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('user/', include('accounts.urls')),
+    path('emails/', include('emails.urls')),
     path('', include('dashboard.urls')),
     path('organizations/', include('organizations.urls')),
     path('assessments/', include('assessments.urls')),
@@ -25,7 +26,6 @@ urlpatterns += i18n_patterns(
     path('recruiting/', include('recruiting.urls')),
     path('billing/', include('billing.urls')),
     path('reports/', include('reports.urls')),
-    path('audit/', include('audit.urls')),
     path('api/webhooks/', include('billing.webhook_urls')),
     prefix_default_language=False,
 )
