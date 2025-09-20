@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Quick Report" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Quick Report Generator" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'reports:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Dashboard" %}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-lightning text-warning"></i> {% trans "Generate Quick Report" %}
+                </h5>
+                <p class="text-muted">
+                    {% trans "Generate predefined reports quickly with common metrics and insights." %}
+                </p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.report_type.id_for_label }}" class="form-label">{{ form.report_type.label }} *</label>
+                        <div class="row">
+                            {% for choice in form.report_type %}
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check">
+                                        {{ choice.tag }}
+                                        <label class="form-check-label w-100" for="{{ choice.id_for_label }}">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <h6 class="card-title">{{ choice.choice_label }}</h6>
+                                                    <small class="text-muted">
+                                                        {% if choice.choice_value == 'assessment_completion' %}
+                                                            {% trans "Assessment completion rates and trends" %}
+                                                        {% elif choice.choice_value == 'team_performance' %}
+                                                            {% trans "Team performance and engagement metrics" %}
+                                                        {% elif choice.choice_value == 'pdi_progress' %}
+                                                            {% trans "PDI plan progress and task completion" %}
+                                                        {% elif choice.choice_value == 'user_engagement' %}
+                                                            {% trans "User activity and platform engagement" %}
+                                                        {% elif choice.choice_value == 'monthly_summary' %}
+                                                            {% trans "Comprehensive monthly activity overview" %}
+                                                        {% endif %}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if form.report_type.errors %}
+                            <div class="text-danger">{{ form.report_type.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.period.id_for_label }}" class="form-label">{{ form.period.label }} *</label>
+                            {{ form.period }}
+                            {% if form.period.errors %}
+                                <div class="text-danger">{{ form.period.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.format.id_for_label }}" class="form-label">{{ form.format.label }}</label>
+                            {{ form.format }}
+                            {% if form.format.errors %}
+                                <div class="text-danger">{{ form.format.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Custom Date Range (hidden by default) -->
+                    <div id="customDateRange" class="row mb-3" style="display: none;">
+                        <div class="col-md-6">
+                            <label for="{{ form.custom_date_from.id_for_label }}" class="form-label">{{ form.custom_date_from.label }}</label>
+                            {{ form.custom_date_from }}
+                            {% if form.custom_date_from.errors %}
+                                <div class="text-danger">{{ form.custom_date_from.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.custom_date_to.id_for_label }}" class="form-label">{{ form.custom_date_to.label }}</label>
+                            {{ form.custom_date_to }}
+                            {% if form.custom_date_to.errors %}
+                                <div class="text-danger">{{ form.custom_date_to.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'reports:dashboard' %}" class="btn btn-outline-secondary me-md-2">
+                            {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-lightning"></i> {% trans "Generate Quick Report" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Quick Reports" %}</h5>
+                <p class="small text-muted">
+                    {% trans "Quick reports are pre-configured with common metrics and visualizations for immediate insights." %}
+                </p>
+                
+                <h6 class="text-primary">{% trans "Benefits:" %}</h6>
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="bi bi-lightning text-warning"></i>
+                        {% trans "Fast generation (under 30 seconds)" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-graph-up text-success"></i>
+                        {% trans "Pre-built visualizations" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-bullseye text-info"></i>
+                        {% trans "Focused on key metrics" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-share text-primary"></i>
+                        {% trans "Easy to share and export" %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Time Periods" %}</h5>
+                <ul class="list-unstyled small">
+                    <li><strong>{% trans "Last 7 days:" %}</strong> {% trans "Recent activity snapshot" %}</li>
+                    <li><strong>{% trans "Last 30 days:" %}</strong> {% trans "Monthly performance review" %}</li>
+                    <li><strong>{% trans "Last 90 days:" %}</strong> {% trans "Quarterly analysis" %}</li>
+                    <li><strong>{% trans "Last year:" %}</strong> {% trans "Annual performance review" %}</li>
+                    <li><strong>{% trans "Custom:" %}</strong> {% trans "Specific date range" %}</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Output Formats" %}</h5>
+                <ul class="list-unstyled small">
+                    <li class="mb-1">
+                        <i class="bi bi-display text-primary"></i>
+                        <strong>{% trans "View Online:" %}</strong> {% trans "Interactive dashboard" %}
+                    </li>
+                    <li class="mb-1">
+                        <i class="bi bi-file-earmark-pdf text-danger"></i>
+                        <strong>{% trans "PDF:" %}</strong> {% trans "Printable document" %}
+                    </li>
+                    <li class="mb-1">
+                        <i class="bi bi-file-earmark-excel text-success"></i>
+                        <strong>{% trans "Excel:" %}</strong> {% trans "Spreadsheet with data" %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const periodSelect = document.getElementById('id_period');
+    const customDateRange = document.getElementById('customDateRange');
+    
+    // Show/hide custom date range based on period selection
+    periodSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            customDateRange.style.display = 'block';
+        } else {
+            customDateRange.style.display = 'none';
+        }
+    });
+    
+    // Initialize visibility
+    if (periodSelect.value === 'custom') {
+        customDateRange.style.display = 'block';
+    }
+});
+</script>
+{% endblock %}

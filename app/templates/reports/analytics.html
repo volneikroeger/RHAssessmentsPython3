@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Analytics" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Live Analytics Dashboard" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'reports:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> {% trans "Back to Reports" %}
+            </a>
+        </div>
+        <div class="btn-group">
+            <button type="button" class="btn btn-outline-primary" onclick="refreshAnalytics()">
+                <i class="bi bi-arrow-clockwise"></i> {% trans "Refresh" %}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Analytics Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form id="analyticsFilters" class="row g-3">
+                    <div class="col-md-3">
+                        {{ filter_form.metric_type }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ filter_form.time_range }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ filter_form.granularity }}
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-check mt-2">
+                            {{ filter_form.compare_previous }}
+                            <label class="form-check-label" for="{{ filter_form.compare_previous.id_for_label }}">
+                                {{ filter_form.compare_previous.label }}
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Performance Indicators -->
+{% if kpis %}
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="text-primary">{{ kpis.assessment_completion_rate|floatformat:1 }}%</h4>
+                    <small class="text-muted">{% trans "Assessment Completion" %}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="text-success">{{ kpis.avg_pdi_progress|floatformat:1 }}%</h4>
+                    <small class="text-muted">{% trans "Avg PDI Progress" %}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="text-info">{{ kpis.active_users }}</h4>
+                    <small class="text-muted">{% trans "Active Users" %}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="text-warning">{{ kpis.user_retention_rate|floatformat:1 }}%</h4>
+                    <small class="text-muted">{% trans "User Retention" %}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Analytics Charts -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Assessment Trends" %}</h5>
+                <div class="chart-container">
+                    <canvas id="assessmentTrendChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "User Engagement" %}</h5>
+                <div class="chart-container">
+                    <canvas id="engagementChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Performance Overview" %}</h5>
+                <div class="chart-container">
+                    <canvas id="performanceChart" width="800" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Quick Insights" %}</h5>
+                <div id="quickInsights">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">{% trans "Loading..." %}</span>
+                        </div>
+                        <p class="mt-2 text-muted">{% trans "Loading insights..." %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Export Analytics" %}</h5>
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="exportAnalytics('pdf')">
+                        <i class="bi bi-file-earmark-pdf"></i> {% trans "Export PDF" %}
+                    </button>
+                    <button type="button" class="btn btn-outline-success btn-sm" onclick="exportAnalytics('excel')">
+                        <i class="bi bi-file-earmark-excel"></i> {% trans "Export Excel" %}
+                    </button>
+                    <button type="button" class="btn btn-outline-info btn-sm" onclick="exportAnalytics('csv')">
+                        <i class="bi bi-filetype-csv"></i> {% trans "Export CSV" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let assessmentChart, engagementChart, performanceChart;
+
+function refreshAnalytics() {
+    const filters = new FormData(document.getElementById('analyticsFilters'));
+    const params = new URLSearchParams(filters);
+    
+    fetch(`{% url 'reports:analytics_data' %}?${params}`)
+        .then(response => response.json())
+        .then(data => {
+            updateCharts(data);
+            updateInsights(data);
+        })
+        .catch(error => {
+            console.error('Error loading analytics:', error);
+        });
+}
+
+function updateCharts(data) {
+    // Update assessment trend chart
+    if (assessmentChart) {
+        assessmentChart.destroy();
+    }
+    
+    const assessmentCtx = document.getElementById('assessmentTrendChart').getContext('2d');
+    assessmentChart = new Chart(assessmentCtx, {
+        type: 'line',
+        data: {
+            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+            datasets: [{
+                label: '{% trans "Completed Assessments" %}',
+                data: data.assessments ? [
+                    data.assessments.total_sent || 0,
+                    data.assessments.completed || 0,
+                    data.assessments.in_progress || 0,
+                    data.assessments.expired || 0
+                ] : [0, 0, 0, 0],
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Update engagement chart
+    if (engagementChart) {
+        engagementChart.destroy();
+    }
+    
+    const engagementCtx = document.getElementById('engagementChart').getContext('2d');
+    engagementChart = new Chart(engagementCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['{% trans "Active" %}', '{% trans "Inactive" %}'],
+            datasets: [{
+                data: [
+                    data.users ? data.users.active_members || 0 : 0,
+                    data.users ? (data.users.total_members - data.users.active_members) || 0 : 0
+                ],
+                backgroundColor: ['#28a745', '#6c757d']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // Update performance chart
+    if (performanceChart) {
+        performanceChart.destroy();
+    }
+    
+    const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+    performanceChart = new Chart(performanceCtx, {
+        type: 'bar',
+        data: {
+            labels: ['{% trans "Assessments" %}', '{% trans "PDI Plans" %}', '{% trans "Reports" %}', '{% trans "Users" %}'],
+            datasets: [{
+                label: '{% trans "Activity Count" %}',
+                data: [
+                    data.assessments ? data.assessments.completed || 0 : 0,
+                    data.pdi ? data.pdi.plans_created || 0 : 0,
+                    10, // Reports count placeholder
+                    data.users ? data.users.active_members || 0 : 0
+                ],
+                backgroundColor: ['#007bff', '#28a745', '#ffc107', '#17a2b8']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+function updateInsights(data) {
+    const insights = document.getElementById('quickInsights');
+    
+    let insightsHtml = '<h6>{% trans "Key Insights" %}</h6>';
+    
+    if (data.assessments) {
+        const completionRate = data.assessments.total_sent > 0 ? 
+            (data.assessments.completed / data.assessments.total_sent * 100) : 0;
+        
+        insightsHtml += `
+            <div class="mb-3">
+                <div class="d-flex justify-content-between">
+                    <span>{% trans "Completion Rate" %}</span>
+                    <span class="fw-bold">${completionRate.toFixed(1)}%</span>
+                </div>
+                <div class="progress" style="height: 4px;">
+                    <div class="progress-bar" style="width: ${completionRate}%"></div>
+                </div>
+            </div>
+        `;
+    }
+    
+    if (data.pdi) {
+        insightsHtml += `
+            <div class="mb-3">
+                <div class="d-flex justify-content-between">
+                    <span>{% trans "PDI Plans" %}</span>
+                    <span class="fw-bold">${data.pdi.plans_created || 0}</span>
+                </div>
+                <small class="text-muted">{% trans "Created in period" %}</small>
+            </div>
+        `;
+    }
+    
+    if (data.users) {
+        insightsHtml += `
+            <div class="mb-3">
+                <div class="d-flex justify-content-between">
+                    <span>{% trans "Active Users" %}</span>
+                    <span class="fw-bold">${data.users.active_members || 0}</span>
+                </div>
+                <small class="text-success">{% trans "Engaged with platform" %}</small>
+            </div>
+        `;
+    }
+    
+    insights.innerHTML = insightsHtml;
+}
+
+function exportAnalytics(format) {
+    // Create a quick report for analytics export
+    const formData = new FormData();
+    formData.append('report_type', 'usage_analytics');
+    formData.append('period', '30');
+    formData.append('format', format.toUpperCase());
+    
+    fetch('{% url "reports:quick" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            window.AssessmentPlatform.showToast('{% trans "Export started! You will be notified when ready." %}', 'success');
+        }
+    })
+    .catch(error => {
+        console.error('Error starting export:', error);
+    });
+}
+
+// Auto-refresh every 5 minutes
+setInterval(refreshAnalytics, 300000);
+
+// Initial load
+document.addEventListener('DOMContentLoaded', function() {
+    refreshAnalytics();
+    
+    // Update analytics when filters change
+    document.getElementById('analyticsFilters').addEventListener('change', function() {
+        setTimeout(refreshAnalytics, 500); // Debounce
+    });
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin-bottom: 1rem;
+}
+
+.analytics-card {
+    transition: all 0.3s ease;
+}
+
+.analytics-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.kpi-card {
+    border-left: 4px solid var(--primary-color, #007bff);
+}
+
+.insight-item {
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    background-color: #f8f9fa;
+    margin-bottom: 0.5rem;
+}
+</style>
+{% endblock %}

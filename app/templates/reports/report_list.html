@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Reports" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "All Reports" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'reports:dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> {% trans "Back to Dashboard" %}
+            </a>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'reports:generate' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> {% trans "Generate Report" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        {{ filter_form.search }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ filter_form.report_type }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ filter_form.status }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ filter_form.format }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ filter_form.generated_by }}
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reports List -->
+<div class="row">
+    {% for report in reports %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 report-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary text-white rounded d-flex align-items-center justify-content-center me-3" 
+                             style="width: 48px; height: 48px;">
+                            <i class="bi bi-bar-chart"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0">{{ report.title }}</h5>
+                            <small class="text-muted">{{ report.get_report_type_display }}</small>
+                        </div>
+                    </div>
+                    
+                    {% if report.description %}
+                        <p class="card-text">{{ report.description|truncatewords:15 }}</p>
+                    {% endif %}
+                    
+                    <!-- Report Details -->
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            {% if report.status == 'COMPLETED' %}
+                                <span class="badge bg-success">{{ report.get_status_display }}</span>
+                            {% elif report.status == 'GENERATING' %}
+                                <span class="badge bg-warning">{{ report.get_status_display }}</span>
+                            {% elif report.status == 'FAILED' %}
+                                <span class="badge bg-danger">{{ report.get_status_display }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ report.get_status_display }}</span>
+                            {% endif %}
+                            
+                            <span class="badge bg-info">{{ report.get_format_display }}</span>
+                            
+                            {% if report.is_public %}
+                                <span class="badge bg-primary">{% trans "Public" %}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <small class="text-muted">
+                            <i class="bi bi-calendar"></i>
+                            {% if report.date_from and report.date_to %}
+                                {{ report.date_from|date:"M d" }} - {{ report.date_to|date:"M d, Y" }}
+                            {% else %}
+                                {% trans "All time" %}
+                            {% endif %}
+                        </small>
+                    </div>
+                    
+                    <!-- Metrics Preview -->
+                    {% if report.metrics.exists %}
+                        <div class="row text-center mb-3">
+                            {% for metric in report.metrics.all|slice:":2" %}
+                                <div class="col-6">
+                                    {% if not forloop.last %}<div class="border-end">{% endif %}
+                                        <h6 class="text-primary">{{ metric.formatted_value }}</h6>
+                                        <small class="text-muted">{{ metric.name|truncatechars:15 }}</small>
+                                    {% if not forloop.last %}</div>{% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'reports:detail' report.pk %}" class="btn btn-outline-primary btn-sm">
+                                {% trans "View" %}
+                            </a>
+                            {% if report.is_completed %}
+                                <a href="{% url 'reports:download' report.pk %}" class="btn btn-outline-success btn-sm">
+                                    {% trans "Download" %}
+                                </a>
+                            {% endif %}
+                        </div>
+                        
+                        {% if report.is_expired %}
+                            <span class="badge bg-danger">{% trans "Expired" %}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-transparent">
+                    <small class="text-muted">
+                        {% trans "Generated" %} {{ report.generation_completed_at|date:"M d, Y g:i A"|default:"In progress" }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-bar-chart display-1 text-muted"></i>
+                <h3 class="mt-3">{% trans "No Reports Yet" %}</h3>
+                <p class="text-muted">
+                    {% trans "Generate your first report to start analyzing your data." %}
+                </p>
+                <a href="{% url 'reports:generate' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> {% trans "Generate First Report" %}
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+    <nav aria-label="{% trans 'Reports pagination' %}">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        {% trans "First" %}
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        {% trans "Previous" %}
+                    </a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">
+                    {% trans "Page" %} {{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        {% trans "Next" %}
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        {% trans "Last" %}
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.report-card {
+    transition: transform 0.2s;
+}
+
+.report-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}

@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Reports Dashboard" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Reports & Analytics" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'reports:quick' %}" class="btn btn-outline-success">
+                <i class="bi bi-lightning"></i> {% trans "Quick Report" %}
+            </a>
+            <a href="{% url 'reports:analytics' %}" class="btn btn-outline-info">
+                <i class="bi bi-graph-up"></i> {% trans "Analytics" %}
+            </a>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'reports:generate' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> {% trans "Generate Report" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-primary">{{ stats.total_reports }}</h4>
+                <small class="text-muted">{% trans "Total Reports" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-success">{{ stats.reports_this_month }}</h4>
+                <small class="text-muted">{% trans "This Month" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-info">{{ stats.scheduled_reports }}</h4>
+                <small class="text-muted">{% trans "Scheduled" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-warning">{{ stats.shared_reports }}</h4>
+                <small class="text-muted">{% trans "Shared with Me" %}</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Quick Actions -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Quick Report Generation" %}</h5>
+                <p class="text-muted">{% trans "Generate common reports with predefined templates." %}</p>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-primary">
+                            <div class="card-body text-center">
+                                <i class="bi bi-clipboard-check display-4 text-primary"></i>
+                                <h6 class="mt-2">{% trans "Assessment Summary" %}</h6>
+                                <p class="small text-muted">{% trans "Completion rates and performance overview" %}</p>
+                                <a href="{% url 'reports:quick' %}" class="btn btn-outline-primary btn-sm">
+                                    {% trans "Generate" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if show_pdi_reports %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-success">
+                            <div class="card-body text-center">
+                                <i class="bi bi-graph-up display-4 text-success"></i>
+                                <h6 class="mt-2">{% trans "PDI Progress" %}</h6>
+                                <p class="small text-muted">{% trans "Development plan progress and completion" %}</p>
+                                <a href="{% url 'reports:quick' %}" class="btn btn-outline-success btn-sm">
+                                    {% trans "Generate" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-info">
+                            <div class="card-body text-center">
+                                <i class="bi bi-people display-4 text-info"></i>
+                                <h6 class="mt-2">{% trans "Team Performance" %}</h6>
+                                <p class="small text-muted">{% trans "Team metrics and engagement analysis" %}</p>
+                                <a href="{% url 'reports:quick' %}" class="btn btn-outline-info btn-sm">
+                                    {% trans "Generate" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if show_recruiting_reports %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <i class="bi bi-person-badge display-4 text-warning"></i>
+                                <h6 class="mt-2">{% trans "Recruiting Metrics" %}</h6>
+                                <p class="small text-muted">{% trans "Candidate pipeline and placement rates" %}</p>
+                                <a href="{% url 'reports:quick' %}" class="btn btn-outline-warning btn-sm">
+                                    {% trans "Generate" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Reports -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">{% trans "Recent Reports" %}</h5>
+                    <a href="{% url 'reports:list' %}" class="btn btn-outline-primary btn-sm">
+                        {% trans "View All" %}
+                    </a>
+                </div>
+                
+                {% for report in recent_reports %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">
+                                <a href="{% url 'reports:detail' report.pk %}" class="text-decoration-none">
+                                    {{ report.title }}
+                                </a>
+                            </h6>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge bg-secondary">{{ report.get_report_type_display }}</span>
+                                <span class="badge bg-info">{{ report.get_format_display }}</span>
+                                {% if report.status == 'COMPLETED' %}
+                                    <span class="badge bg-success">{{ report.get_status_display }}</span>
+                                {% elif report.status == 'GENERATING' %}
+                                    <span class="badge bg-warning">{{ report.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-danger">{{ report.get_status_display }}</span>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">
+                                {% trans "Generated by" %} {{ report.generated_by.full_name }}
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted">{{ report.generation_completed_at|date:"M d, Y" }}</small>
+                            <br>
+                            <a href="{% url 'reports:detail' report.pk %}" class="btn btn-outline-primary btn-sm">
+                                {% trans "View" %}
+                            </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-bar-chart display-4 text-muted"></i>
+                        <p class="mt-2 text-muted">{% trans "No reports generated yet." %}</p>
+                        <a href="{% url 'reports:generate' %}" class="btn btn-primary">
+                            {% trans "Generate Your First Report" %}
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <!-- Bookmarked Reports -->
+        {% if bookmarked_reports %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-bookmark"></i> {% trans "Bookmarked Reports" %}
+                    </h5>
+                    
+                    {% for report in bookmarked_reports %}
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <div class="fw-medium">
+                                    <a href="{% url 'reports:detail' report.pk %}" class="text-decoration-none">
+                                        {{ report.title|truncatechars:30 }}
+                                    </a>
+                                </div>
+                                <small class="text-muted">{{ report.get_report_type_display }}</small>
+                            </div>
+                            <small class="text-muted">{{ report.created_at|date:"M d" }}</small>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Available Templates -->
+        <div class="card {% if bookmarked_reports %}mt-3{% endif %}">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Report Templates" %}</h5>
+                
+                {% for template in available_templates %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <div>
+                            <div class="fw-medium">{{ template.name }}</div>
+                            <small class="text-muted">{{ template.get_report_type_display }}</small>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm" 
+                                onclick="generateFromTemplate('{{ template.id }}')">
+                            {% trans "Use" %}
+                        </button>
+                    </div>
+                {% empty %}
+                    <p class="text-muted">{% trans "No templates available." %}</p>
+                    <a href="{% url 'reports:template_create' %}" class="btn btn-outline-primary btn-sm">
+                        {% trans "Create Template" %}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Quick Actions" %}</h5>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'reports:generate' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-plus-circle"></i> {% trans "Custom Report" %}
+                    </a>
+                    <a href="{% url 'reports:analytics' %}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-graph-up"></i> {% trans "Live Analytics" %}
+                    </a>
+                    <a href="{% url 'reports:benchmark' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-speedometer2"></i> {% trans "Benchmarks" %}
+                    </a>
+                    <a href="{% url 'reports:organization_analytics' %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-building"></i> {% trans "Org Analytics" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Help & Tips -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Report Types" %}</h5>
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="bi bi-clipboard-check text-primary"></i>
+                        <strong>{% trans "Assessment Summary" %}</strong><br>
+                        {% trans "Completion rates and score analysis" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-people text-success"></i>
+                        <strong>{% trans "Team Performance" %}</strong><br>
+                        {% trans "Team metrics and engagement" %}
+                    </li>
+                    {% if show_pdi_reports %}
+                    <li class="mb-2">
+                        <i class="bi bi-graph-up text-info"></i>
+                        <strong>{% trans "PDI Progress" %}</strong><br>
+                        {% trans "Development plan tracking" %}
+                    </li>
+                    {% endif %}
+                    {% if show_recruiting_reports %}
+                    <li class="mb-2">
+                        <i class="bi bi-person-badge text-warning"></i>
+                        <strong>{% trans "Recruiting Metrics" %}</strong><br>
+                        {% trans "Candidate pipeline analysis" %}
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function generateFromTemplate(templateId) {
+    // Redirect to generate page with template pre-selected
+    window.location.href = `{% url 'reports:generate' %}?template=${templateId}`;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Load dashboard analytics
+    fetch('{% url "reports:analytics_data" %}')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Dashboard analytics loaded:', data);
+            // Could render mini charts here
+        })
+        .catch(error => {
+            console.error('Error loading analytics:', error);
+        });
+});
+</script>
+{% endblock %}
