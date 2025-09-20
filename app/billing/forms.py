@@ -211,13 +211,15 @@ class UsageReportForm(forms.Form):
         self.fields['date_from'].initial = thirty_days_ago
         self.fields['date_to'].initial = today
         
-        # Dynamically define usage_types field to avoid premature model loading
+        # Dynamically define usage_types field
         self.fields['usage_types'] = forms.MultipleChoiceField(
-            choices=UsageMeter.USAGE_TYPES,
+            # Removed 'choices=UsageMeter.USAGE_TYPES' from here
             widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
             label=_('Usage Types'),
             required=False
         )
+        # Assign choices AFTER the field is created and super().__init__() is called
+        self.fields['usage_types'].choices = UsageMeter.USAGE_TYPES
 
 
 class BillingSearchForm(forms.Form):
