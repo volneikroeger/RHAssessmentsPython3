@@ -422,7 +422,7 @@ class PDIActionCatalog(BaseTenantModel):
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(_('title'), max_length=200)
-    description = models.TextField(_('description'))
+    description = models.TextField(_('description'), blank=True)
     category = models.CharField(_('category'), max_length=20, choices=PDITask.CATEGORY_CHOICES)
     
     # Action details
@@ -435,7 +435,7 @@ class PDIActionCatalog(BaseTenantModel):
             ('INTERMEDIATE', _('Intermediate')),
             ('ADVANCED', _('Advanced')),
         ],
-        default='INTERMEDIATE'
+        default='INTERMEDIATE', max_length=20
     )
     
     # Resources

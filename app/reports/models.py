@@ -62,7 +62,7 @@ class Report(BaseTenantModel):
     
     # Access control
     is_public = models.BooleanField(_('public'), default=False)
-    shared_with = models.ManyToManyField(User, blank=True, related_name='shared_reports')
+    shared_with = models.ManyToManyField(User, blank=True, related_name='shared_general_reports')
     expires_at = models.DateTimeField(_('expires at'), null=True, blank=True)
     
     # Generation details

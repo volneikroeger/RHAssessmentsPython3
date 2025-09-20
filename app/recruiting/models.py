@@ -484,7 +484,7 @@ class CandidateNote(models.Model):
     """
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE, related_name='notes')
+    candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE, related_name='candidate_notes')
     application = models.ForeignKey(JobApplication, on_delete=models.CASCADE, null=True, blank=True, related_name='notes')
     
     # Note content

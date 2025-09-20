@@ -304,7 +304,7 @@ class AssessmentReport(BaseTenantModel):
     
     # Access control
     is_public = models.BooleanField(_('public'), default=False)
-    shared_with = models.ManyToManyField(User, blank=True, related_name='shared_reports')
+    shared_with = models.ManyToManyField(User, blank=True, related_name='shared_assessment_reports')
     
     # Metadata
     generated_at = models.DateTimeField(auto_now_add=True)
