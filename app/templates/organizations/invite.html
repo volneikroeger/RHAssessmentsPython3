@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Invite Member" %} - {{ object.name }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Invite New Member" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'organizations:members' object.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Members" %}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Invitation Details" %}</h5>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_email" class="form-label">{% trans "Email Address" %} *</label>
+                        <input type="email" class="form-control" id="id_email" name="email" required>
+                        <div class="form-text">{% trans "Enter the email address of the person you want to invite." %}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_role" class="form-label">{% trans "Role" %} *</label>
+                        <select class="form-select" id="id_role" name="role" required>
+                            <option value="">{% trans "Select role..." %}</option>
+                            <option value="VIEWER">{% trans "Viewer" %}</option>
+                            <option value="MEMBER">{% trans "Member" %}</option>
+                            <option value="RECRUITER">{% trans "Recruiter" %}</option>
+                            <option value="HR">{% trans "HR" %}</option>
+                            <option value="MANAGER">{% trans "Manager" %}</option>
+                            <option value="ORG_ADMIN">{% trans "Organization Admin" %}</option>
+                        </select>
+                        <div class="form-text">{% trans "Choose the appropriate role for this member." %}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_message" class="form-label">{% trans "Personal Message" %}</label>
+                        <textarea class="form-control" id="id_message" name="message" rows="3" 
+                                  placeholder="{% trans 'Optional personal message to include with the invitation...' %}"></textarea>
+                        <div class="form-text">{% trans "Add a personal note to make the invitation more welcoming." %}</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'organizations:members' object.pk %}" class="btn btn-outline-secondary me-md-2">
+                            {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send"></i> {% trans "Send Invitation" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Role Permissions" %}</h5>
+                
+                <div class="mb-3">
+                    <h6 class="text-primary">{% trans "Viewer" %}</h6>
+                    <ul class="small text-muted">
+                        <li>{% trans "View basic information" %}</li>
+                        <li>{% trans "Access reports (read-only)" %}</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-success">{% trans "Member" %}</h6>
+                    <ul class="small text-muted">
+                        <li>{% trans "All Viewer permissions" %}</li>
+                        <li>{% trans "Take assessments" %}</li>
+                        <li>{% trans "View own results" %}</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-info">{% trans "Manager" %}</h6>
+                    <ul class="small text-muted">
+                        <li>{% trans "All Member permissions" %}</li>
+                        <li>{% trans "View team results" %}</li>
+                        <li>{% trans "Approve PDI plans" %}</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-warning">{% trans "HR" %}</h6>
+                    <ul class="small text-muted">
+                        <li>{% trans "All Manager permissions" %}</li>
+                        <li>{% trans "Manage employees" %}</li>
+                        <li>{% trans "Send assessments" %}</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-danger">{% trans "Organization Admin" %}</h6>
+                    <ul class="small text-muted">
+                        <li>{% trans "Full organization access" %}</li>
+                        <li>{% trans "Manage all settings" %}</li>
+                        <li>{% trans "Invite/remove members" %}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Invitation Process" %}</h5>
+                <ol class="small">
+                    <li>{% trans "Enter the person's email address" %}</li>
+                    <li>{% trans "Choose their role in the organization" %}</li>
+                    <li>{% trans "Add a personal message (optional)" %}</li>
+                    <li>{% trans "Send the invitation" %}</li>
+                    <li>{% trans "They'll receive an email with a link to join" %}</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

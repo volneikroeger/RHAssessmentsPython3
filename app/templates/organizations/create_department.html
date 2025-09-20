@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Create Department" %} - {{ object.name }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Create New Department" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'organizations:departments' object.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Departments" %}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Department Details" %}</h5>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_name" class="form-label">{% trans "Department Name" %} *</label>
+                        <input type="text" class="form-control" id="id_name" name="name" required>
+                        <div class="form-text">{% trans "Enter the name of the department (e.g., Human Resources, Engineering, Sales)." %}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_description" class="form-label">{% trans "Description" %}</label>
+                        <textarea class="form-control" id="id_description" name="description" rows="3" 
+                                  placeholder="{% trans 'Brief description of the department and its responsibilities...' %}"></textarea>
+                        <div class="form-text">{% trans "Describe what this department does and its main responsibilities." %}</div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_parent" class="form-label">{% trans "Parent Department" %}</label>
+                            <select class="form-select" id="id_parent" name="parent">
+                                <option value="">{% trans "None (Top-level department)" %}</option>
+                                <!-- Parent departments would be populated here -->
+                            </select>
+                            <div class="form-text">{% trans "Select a parent department if this is a sub-department." %}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_manager" class="form-label">{% trans "Department Manager" %}</label>
+                            <select class="form-select" id="id_manager" name="manager">
+                                <option value="">{% trans "No manager assigned" %}</option>
+                                <!-- Organization members would be populated here -->
+                            </select>
+                            <div class="form-text">{% trans "Choose who will manage this department." %}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'organizations:departments' object.pk %}" class="btn btn-outline-secondary me-md-2">
+                            {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> {% trans "Create Department" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Department Structure Tips" %}</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="bi bi-lightbulb text-warning"></i>
+                        {% trans "Start with main departments like HR, Engineering, Sales" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-diagram-3 text-info"></i>
+                        {% trans "Create sub-departments for larger teams" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-person-badge text-success"></i>
+                        {% trans "Assign managers to help organize teams" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-gear text-secondary"></i>
+                        {% trans "You can always reorganize departments later" %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Common Departments" %}</h5>
+                <div class="d-flex flex-wrap gap-1">
+                    <span class="badge bg-primary">Human Resources</span>
+                    <span class="badge bg-success">Engineering</span>
+                    <span class="badge bg-info">Sales</span>
+                    <span class="badge bg-warning">Marketing</span>
+                    <span class="badge bg-secondary">Finance</span>
+                    <span class="badge bg-dark">Operations</span>
+                    <span class="badge bg-primary">Customer Support</span>
+                    <span class="badge bg-success">Product</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

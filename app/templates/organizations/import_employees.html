@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Import Employees" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Import Employees from CSV" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'organizations:employees' current_tenant.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Employees" %}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Upload CSV File" %}</h5>
+                
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_csv_file" class="form-label">{% trans "CSV File" %} *</label>
+                        <input type="file" class="form-control" id="id_csv_file" name="csv_file" accept=".csv" required>
+                        <div class="form-text">
+                            {% trans "Upload a CSV file with employee information. Maximum file size: 5MB." %}
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-info-circle"></i> {% trans "CSV Format Requirements" %}</h6>
+                        <p class="mb-2">{% trans "Your CSV file must include the following columns:" %}</p>
+                        <ul class="mb-0">
+                            <li><strong>email</strong> - {% trans "Employee's email address" %}</li>
+                            <li><strong>first_name</strong> - {% trans "Employee's first name" %}</li>
+                            <li><strong>last_name</strong> - {% trans "Employee's last name" %}</li>
+                            <li><strong>department</strong> - {% trans "Department name (must exist)" %}</li>
+                            <li><strong>position</strong> - {% trans "Position title (must exist in department)" %}</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'organizations:employees' current_tenant.pk %}" class="btn btn-outline-secondary me-md-2">
+                            {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload"></i> {% trans "Import Employees" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Sample CSV Format" %}</h5>
+                <pre class="bg-light p-3 rounded"><code>email,first_name,last_name,department,position
+john.doe@company.com,John,Doe,Engineering,Software Engineer
+jane.smith@company.com,Jane,Smith,Marketing,Marketing Manager
+bob.wilson@company.com,Bob,Wilson,Sales,Sales Representative</code></pre>
+                
+                <a href="#" class="btn btn-outline-primary btn-sm mt-2" disabled>
+                    <i class="bi bi-download"></i> {% trans "Download Template" %}
+                </a>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Import Process" %}</h5>
+                <ol class="small">
+                    <li>{% trans "Prepare your CSV file with the required columns" %}</li>
+                    <li>{% trans "Ensure departments and positions exist in the system" %}</li>
+                    <li>{% trans "Upload the file (max 5MB)" %}</li>
+                    <li>{% trans "Review the import results" %}</li>
+                    <li>{% trans "Invite new users if needed" %}</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Important Notes" %}</h5>
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="bi bi-exclamation-triangle text-warning"></i>
+                        {% trans "Departments and positions must exist before importing" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-person-plus text-info"></i>
+                        {% trans "New users will be created automatically" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-envelope text-success"></i>
+                        {% trans "Invitation emails will be sent to new users" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-shield-check text-primary"></i>
+                        {% trans "All data is validated before import" %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

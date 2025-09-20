@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Create Position" %} - {{ department.name }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Create New Position" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'organizations:positions' department.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Positions" %}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Position Details" %}</h5>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_title" class="form-label">{% trans "Position Title" %} *</label>
+                        <input type="text" class="form-control" id="id_title" name="title" required>
+                        <div class="form-text">{% trans "Enter the job title (e.g., Senior Software Engineer, Marketing Manager)." %}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_description" class="form-label">{% trans "Job Description" %}</label>
+                        <textarea class="form-control" id="id_description" name="description" rows="4" 
+                                  placeholder="{% trans 'Describe the role, responsibilities, and expectations...' %}"></textarea>
+                        <div class="form-text">{% trans "Provide a detailed description of what this position entails." %}</div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_level" class="form-label">{% trans "Position Level" %} *</label>
+                            <select class="form-select" id="id_level" name="level" required>
+                                <option value="1">1 - {% trans "Entry Level" %}</option>
+                                <option value="2">2 - {% trans "Junior" %}</option>
+                                <option value="3">3 - {% trans "Mid Level" %}</option>
+                                <option value="4">4 - {% trans "Senior" %}</option>
+                                <option value="5">5 - {% trans "Lead/Principal" %}</option>
+                                <option value="6">6 - {% trans "Manager" %}</option>
+                                <option value="7">7 - {% trans "Senior Manager" %}</option>
+                                <option value="8">8 - {% trans "Director" %}</option>
+                                <option value="9">9 - {% trans "VP" %}</option>
+                                <option value="10">10 - {% trans "Executive" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_min_experience_years" class="form-label">{% trans "Minimum Experience (Years)" %}</label>
+                            <input type="number" class="form-control" id="id_min_experience_years" name="min_experience_years" 
+                                   min="0" max="30" value="0">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_reports_to" class="form-label">{% trans "Reports To" %}</label>
+                        <select class="form-select" id="id_reports_to" name="reports_to">
+                            <option value="">{% trans "No direct manager" %}</option>
+                            <!-- Other positions would be populated here -->
+                        </select>
+                        <div class="form-text">{% trans "Select the position this role reports to." %}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_required_skills" class="form-label">{% trans "Required Skills" %}</label>
+                        <input type="text" class="form-control" id="id_required_skills" name="required_skills" 
+                               placeholder="{% trans 'Python, Django, PostgreSQL, Git...' %}">
+                        <div class="form-text">{% trans "Enter skills separated by commas." %}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_preferred_skills" class="form-label">{% trans "Preferred Skills" %}</label>
+                        <input type="text" class="form-control" id="id_preferred_skills" name="preferred_skills" 
+                               placeholder="{% trans 'Docker, AWS, React, Leadership...' %}">
+                        <div class="form-text">{% trans "Enter nice-to-have skills separated by commas." %}</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'organizations:positions' department.pk %}" class="btn btn-outline-secondary me-md-2">
+                            {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> {% trans "Create Position" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Position Levels Guide" %}</h5>
+                <ul class="list-unstyled small">
+                    <li><strong>1-2:</strong> {% trans "Entry to Junior level" %}</li>
+                    <li><strong>3-4:</strong> {% trans "Mid to Senior individual contributor" %}</li>
+                    <li><strong>5:</strong> {% trans "Lead/Principal - technical leadership" %}</li>
+                    <li><strong>6-7:</strong> {% trans "Management roles" %}</li>
+                    <li><strong>8-10:</strong> {% trans "Executive leadership" %}</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Department Context" %}</h5>
+                <p><strong>{% trans "Department:" %}</strong> {{ department.name }}</p>
+                {% if department.description %}
+                    <p class="small text-muted">{{ department.description }}</p>
+                {% endif %}
+                {% if department.manager %}
+                    <p><strong>{% trans "Manager:" %}</strong> {{ department.manager.full_name }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Tips" %}</h5>
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="bi bi-lightbulb text-warning"></i>
+                        {% trans "Be specific about required vs preferred skills" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-graph-up text-success"></i>
+                        {% trans "Consider career progression paths" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-people text-info"></i>
+                        {% trans "Define clear reporting relationships" %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

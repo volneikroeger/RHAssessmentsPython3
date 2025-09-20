@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Confirmation Sent" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow">
+                <div class="card-body p-4 text-center">
+                    <i class="bi bi-envelope display-4 text-primary mb-3"></i>
+                    <h2>{% trans "Confirmation Sent" %}</h2>
+                    <p class="text-muted mb-4">
+                        {% trans "We've sent a confirmation email to your address. Please check your inbox and click the confirmation link to activate your account." %}
+                    </p>
+                    
+                    <div class="alert alert-info">
+                        <small>
+                            <i class="bi bi-info-circle"></i>
+                            {% trans "If you don't see the email, check your spam folder." %}
+                        </small>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <a href="{% url 'account_login' %}" class="btn btn-primary">
+                            <i class="bi bi-box-arrow-in-right"></i> {% trans "Continue to Sign In" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

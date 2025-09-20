@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Organization Settings" %} - {{ object.name }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Organization Settings" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'organizations:detail' object.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Organization" %}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "General Settings" %}</h5>
+                
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_name" class="form-label">{% trans "Organization Name" %} *</label>
+                        <input type="text" class="form-control" id="id_name" name="name" 
+                               value="{{ object.name }}" required>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_email" class="form-label">{% trans "Contact Email" %}</label>
+                            <input type="email" class="form-control" id="id_email" name="email" 
+                                   value="{{ object.email }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_phone" class="form-label">{% trans "Phone Number" %}</label>
+                            <input type="tel" class="form-control" id="id_phone" name="phone" 
+                                   value="{{ object.phone }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_website" class="form-label">{% trans "Website" %}</label>
+                        <input type="url" class="form-control" id="id_website" name="website" 
+                               value="{{ object.website }}">
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_locale_default" class="form-label">{% trans "Default Language" %}</label>
+                            <select class="form-select" id="id_locale_default" name="locale_default">
+                                <option value="en" {% if object.locale_default == 'en' %}selected{% endif %}>English</option>
+                                <option value="pt-br" {% if object.locale_default == 'pt-br' %}selected{% endif %}>Português (Brasil)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_timezone" class="form-label">{% trans "Timezone" %}</label>
+                            <select class="form-select" id="id_timezone" name="timezone">
+                                <option value="UTC" {% if object.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                                <option value="America/New_York" {% if object.timezone == 'America/New_York' %}selected{% endif %}>Eastern Time</option>
+                                <option value="America/Chicago" {% if object.timezone == 'America/Chicago' %}selected{% endif %}>Central Time</option>
+                                <option value="America/Denver" {% if object.timezone == 'America/Denver' %}selected{% endif %}>Mountain Time</option>
+                                <option value="America/Los_Angeles" {% if object.timezone == 'America/Los_Angeles' %}selected{% endif %}>Pacific Time</option>
+                                <option value="America/Sao_Paulo" {% if object.timezone == 'America/Sao_Paulo' %}selected{% endif %}>São Paulo</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>{% trans "Branding" %}</h6>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label for="id_logo" class="form-label">{% trans "Logo" %}</label>
+                            <input type="file" class="form-control" id="id_logo" name="logo" accept="image/*">
+                            {% if object.logo %}
+                                <div class="mt-2">
+                                    <img src="{{ object.logo.url }}" alt="Current logo" class="img-thumbnail" style="max-height: 100px;">
+                                    <small class="text-muted d-block">{% trans "Current logo" %}</small>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="id_primary_color" class="form-label">{% trans "Primary Color" %}</label>
+                            <input type="color" class="form-control form-control-color" id="id_primary_color" 
+                                   name="primary_color" value="{{ object.primary_color }}">
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>{% trans "Access Settings" %}</h6>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="id_allow_self_registration" 
+                                   name="allow_self_registration" {% if object.allow_self_registration %}checked{% endif %}>
+                            <label class="form-check-label" for="id_allow_self_registration">
+                                {% trans "Allow self-registration" %}
+                            </label>
+                            <div class="form-text">
+                                {% trans "Allow users to join this organization without an invitation." %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'organizations:detail' object.pk %}" class="btn btn-outline-secondary me-md-2">
+                            {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> {% trans "Save Settings" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Organization Info" %}</h5>
+                <ul class="list-unstyled">
+                    <li><strong>{% trans "Type:" %}</strong> {{ object.get_kind_display }}</li>
+                    <li><strong>{% trans "Created:" %}</strong> {{ object.created_at|date:"M d, Y" }}</li>
+                    <li><strong>{% trans "Members:" %}</strong> {{ object.get_active_members.count }}</li>
+                    {% if object.subdomain %}
+                        <li><strong>{% trans "Subdomain:" %}</strong> {{ object.subdomain }}</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Quick Actions" %}</h5>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'organizations:members' object.pk %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-people"></i> {% trans "Manage Members" %}
+                    </a>
+                    <a href="{% url 'organizations:invite' object.pk %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-person-plus"></i> {% trans "Invite Users" %}
+                    </a>
+                    {% if object.is_company %}
+                        <a href="{% url 'organizations:departments' object.pk %}" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-diagram-3"></i> {% trans "Manage Departments" %}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Branding Tips" %}</h5>
+                <ul class="list-unstyled small">
+                    <li class="mb-2">
+                        <i class="bi bi-image text-info"></i>
+                        {% trans "Logo should be square format (1:1 ratio)" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-palette text-warning"></i>
+                        {% trans "Primary color affects navigation and buttons" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-eye text-success"></i>
+                        {% trans "Changes apply immediately to all users" %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

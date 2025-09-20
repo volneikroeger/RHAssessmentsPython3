@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Edit Employee" %} - {{ object.user.full_name }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Edit Employee" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'organizations:employees' object.organization.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Employees" %}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Employee Information" %}</h5>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "User Account" %}</label>
+                        <div class="form-control-plaintext">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                     style="width: 40px; height: 40px;">
+                                    {{ object.user.first_name|first|default:object.user.email|first|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ object.user.full_name|default:object.user.email }}</div>
+                                    <small class="text-muted">{{ object.user.email }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_department" class="form-label">{% trans "Department" %} *</label>
+                            <select class="form-select" id="id_department" name="department" required>
+                                <option value="{{ object.department.pk }}" selected>{{ object.department.name }}</option>
+                                <!-- Other departments would be populated here -->
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_position" class="form-label">{% trans "Position" %} *</label>
+                            <select class="form-select" id="id_position" name="position" required>
+                                <option value="{{ object.position.pk }}" selected>{{ object.position.title }}</option>
+                                <!-- Other positions would be populated here -->
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_employee_id" class="form-label">{% trans "Employee ID" %}</label>
+                            <input type="text" class="form-control" id="id_employee_id" name="employee_id" 
+                                   value="{{ object.employee_id }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_hire_date" class="form-label">{% trans "Hire Date" %} *</label>
+                            <input type="date" class="form-control" id="id_hire_date" name="hire_date" 
+                                   value="{{ object.hire_date|date:'Y-m-d' }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_employment_type" class="form-label">{% trans "Employment Type" %} *</label>
+                            <select class="form-select" id="id_employment_type" name="employment_type" required>
+                                <option value="FULL_TIME" {% if object.employment_type == 'FULL_TIME' %}selected{% endif %}>{% trans "Full Time" %}</option>
+                                <option value="PART_TIME" {% if object.employment_type == 'PART_TIME' %}selected{% endif %}>{% trans "Part Time" %}</option>
+                                <option value="CONTRACTOR" {% if object.employment_type == 'CONTRACTOR' %}selected{% endif %}>{% trans "Contractor" %}</option>
+                                <option value="INTERN" {% if object.employment_type == 'INTERN' %}selected{% endif %}>{% trans "Intern" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_manager" class="form-label">{% trans "Manager" %}</label>
+                            <select class="form-select" id="id_manager" name="manager">
+                                <option value="">{% trans "No direct manager" %}</option>
+                                {% if object.manager %}
+                                    <option value="{{ object.manager.pk }}" selected>{{ object.manager.user.full_name }}</option>
+                                {% endif %}
+                                <!-- Other employees would be populated here -->
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_termination_date" class="form-label">{% trans "Termination Date" %}</label>
+                            <input type="date" class="form-control" id="id_termination_date" name="termination_date" 
+                                   value="{% if object.termination_date %}{{ object.termination_date|date:'Y-m-d' }}{% endif %}">
+                            <div class="form-text">{% trans "Leave blank if employee is still active." %}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check mt-4">
+                                <input class="form-check-input" type="checkbox" id="id_is_active" name="is_active" 
+                                       {% if object.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="id_is_active">
+                                    {% trans "Active Employee" %}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label for="id_salary" class="form-label">{% trans "Salary" %}</label>
+                            <input type="text" class="form-control" id="id_salary" name="salary" 
+                                   value="{{ object.salary }}" placeholder="{% trans 'Encrypted field' %}">
+                            <div class="form-text">{% trans "This information is encrypted and only visible to authorized personnel." %}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="id_currency" class="form-label">{% trans "Currency" %}</label>
+                            <select class="form-select" id="id_currency" name="currency">
+                                <option value="USD" {% if object.currency == 'USD' %}selected{% endif %}>USD</option>
+                                <option value="BRL" {% if object.currency == 'BRL' %}selected{% endif %}>BRL</option>
+                                <option value="EUR" {% if object.currency == 'EUR' %}selected{% endif %}>EUR</option>
+                                <option value="GBP" {% if object.currency == 'GBP' %}selected{% endif %}>GBP</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'organizations:employees' object.organization.pk %}" class="btn btn-outline-secondary me-md-2">
+                            {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> {% trans "Save Changes" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Employee Details" %}</h5>
+                <ul class="list-unstyled">
+                    <li><strong>{% trans "Hire Date:" %}</strong> {{ object.hire_date|date:"M d, Y" }}</li>
+                    <li><strong>{% trans "Employment Type:" %}</strong> {{ object.get_employment_type_display }}</li>
+                    <li><strong>{% trans "Department:" %}</strong> {{ object.department.name }}</li>
+                    <li><strong>{% trans "Position:" %}</strong> {{ object.position.title }}</li>
+                    {% if object.manager %}
+                        <li><strong>{% trans "Manager:" %}</strong> {{ object.manager.user.full_name }}</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Quick Actions" %}</h5>
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-primary btn-sm" disabled>
+                        <i class="bi bi-clipboard-check"></i> {% trans "Send Assessment" %}
+                    </button>
+                    <button type="button" class="btn btn-outline-success btn-sm" disabled>
+                        <i class="bi bi-graph-up"></i> {% trans "View PDI" %}
+                    </button>
+                    <button type="button" class="btn btn-outline-info btn-sm" disabled>
+                        <i class="bi bi-bar-chart"></i> {% trans "Performance Reports" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Employment History" %}</h5>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-success"></div>
+                        <div class="timeline-content">
+                            <h6>{% trans "Hired" %}</h6>
+                            <p class="small text-muted">{{ object.hire_date|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                    {% if object.termination_date %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-danger"></div>
+                            <div class="timeline-content">
+                                <h6>{% trans "Terminated" %}</h6>
+                                <p class="small text-muted">{{ object.termination_date|date:"M d, Y" }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

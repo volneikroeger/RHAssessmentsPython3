@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Members" %} - {{ object.name }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Organization Members" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'organizations:detail' object.pk %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> {% trans "Back to Organization" %}
+            </a>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'organizations:invite' object.pk %}" class="btn btn-primary">
+                <i class="bi bi-person-plus"></i> {% trans "Invite Member" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Member" %}</th>
+                                <th>{% trans "Role" %}</th>
+                                <th>{% trans "Status" %}</th>
+                                <th>{% trans "Joined" %}</th>
+                                <th>{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for membership in memberships %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                             style="width: 40px; height: 40px;">
+                                            {{ membership.user.first_name|first|default:membership.user.email|first|upper }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold">{{ membership.user.full_name|default:membership.user.email }}</div>
+                                            <small class="text-muted">{{ membership.user.email }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ membership.get_role_display }}</span>
+                                    {% if membership.is_primary %}
+                                        <span class="badge bg-primary ms-1">{% trans "Primary" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if membership.is_active %}
+                                        <span class="badge bg-success">{% trans "Active" %}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{% trans "Inactive" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if membership.accepted_at %}
+                                        {{ membership.accepted_at|date:"M d, Y" }}
+                                    {% else %}
+                                        <span class="text-muted">{% trans "Pending" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" disabled>
+                                            {% trans "Edit" %}
+                                        </button>
+                                        {% if membership.user != user %}
+                                            <button type="button" class="btn btn-outline-danger btn-sm" disabled>
+                                                {% trans "Remove" %}
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <i class="bi bi-people display-4 text-muted"></i>
+                                    <p class="mt-2 text-muted">{% trans "No members found." %}</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Pending Invitations" %}</h5>
+                <p class="text-muted">{% trans "Users who have been invited but haven't accepted yet." %}</p>
+                
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Email" %}</th>
+                                <th>{% trans "Role" %}</th>
+                                <th>{% trans "Invited By" %}</th>
+                                <th>{% trans "Invited Date" %}</th>
+                                <th>{% trans "Expires" %}</th>
+                                <th>{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="6" class="text-center py-3">
+                                    <small class="text-muted">{% trans "No pending invitations." %}</small>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Complete Registration" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-person-check display-4 text-success"></i>
+                        <h2 class="mt-2">{% trans "Complete Registration" %}</h2>
+                        <p class="text-muted">{% trans "Please complete your profile information" %}</p>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        {% trans "You're signing up with:" %} <strong>{{ account.provider|title }}</strong>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="id_first_name" class="form-label">{% trans "First Name" %}</label>
+                                <input type="text" class="form-control" id="id_first_name" name="first_name" 
+                                       value="{{ form.first_name.value|default:'' }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_last_name" class="form-label">{% trans "Last Name" %}</label>
+                                <input type="text" class="form-control" id="id_last_name" name="last_name" 
+                                       value="{{ form.last_name.value|default:'' }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_email" class="form-label">{% trans "Email Address" %}</label>
+                            <input type="email" class="form-control" id="id_email" name="email" 
+                                   value="{{ form.email.value|default:account.extra_data.email }}" required readonly>
+                            <div class="form-text">
+                                {% trans "This email address is provided by your social account." %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="id_terms" name="terms" required>
+                                <label class="form-check-label" for="id_terms">
+                                    {% trans "I agree to the" %}
+                                    <a href="{% url 'audit:terms_of_service' %}" target="_blank">{% trans "Terms of Service" %}</a>
+                                    {% trans "and" %}
+                                    <a href="{% url 'audit:privacy_policy' %}" target="_blank">{% trans "Privacy Policy" %}</a>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-lg"></i> {% trans "Complete Registration" %}
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-center">
+                        <a href="{% url 'account_login' %}" class="text-decoration-none">
+                            <i class="bi bi-arrow-left"></i> {% trans "Back to Sign In" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

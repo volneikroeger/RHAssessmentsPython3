@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Edit Organization" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Edit Organization" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'organizations:detail' object.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Organization" %}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Organization Details" %}</h5>
+                
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label for="id_name" class="form-label">{% trans "Organization Name" %} *</label>
+                            <input type="text" class="form-control" id="id_name" name="name" 
+                                   value="{{ form.name.value|default:object.name }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="id_kind" class="form-label">{% trans "Organization Type" %} *</label>
+                            <select class="form-select" id="id_kind" name="kind" required>
+                                <option value="COMPANY" {% if object.kind == 'COMPANY' %}selected{% endif %}>
+                                    {% trans "Company (HR + PDI)" %}
+                                </option>
+                                <option value="RECRUITER" {% if object.kind == 'RECRUITER' %}selected{% endif %}>
+                                    {% trans "Recruiter (R&S)" %}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_email" class="form-label">{% trans "Contact Email" %}</label>
+                            <input type="email" class="form-control" id="id_email" name="email" 
+                                   value="{{ form.email.value|default:object.email }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_phone" class="form-label">{% trans "Phone Number" %}</label>
+                            <input type="tel" class="form-control" id="id_phone" name="phone" 
+                                   value="{{ form.phone.value|default:object.phone }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_website" class="form-label">{% trans "Website" %}</label>
+                        <input type="url" class="form-control" id="id_website" name="website" 
+                               value="{{ form.website.value|default:object.website }}">
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_locale_default" class="form-label">{% trans "Default Language" %}</label>
+                            <select class="form-select" id="id_locale_default" name="locale_default">
+                                <option value="en" {% if object.locale_default == 'en' %}selected{% endif %}>English</option>
+                                <option value="pt-br" {% if object.locale_default == 'pt-br' %}selected{% endif %}>Português (Brasil)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_timezone" class="form-label">{% trans "Timezone" %}</label>
+                            <select class="form-select" id="id_timezone" name="timezone">
+                                <option value="UTC" {% if object.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                                <option value="America/New_York" {% if object.timezone == 'America/New_York' %}selected{% endif %}>Eastern Time</option>
+                                <option value="America/Chicago" {% if object.timezone == 'America/Chicago' %}selected{% endif %}>Central Time</option>
+                                <option value="America/Denver" {% if object.timezone == 'America/Denver' %}selected{% endif %}>Mountain Time</option>
+                                <option value="America/Los_Angeles" {% if object.timezone == 'America/Los_Angeles' %}selected{% endif %}>Pacific Time</option>
+                                <option value="America/Sao_Paulo" {% if object.timezone == 'America/Sao_Paulo' %}selected{% endif %}>São Paulo</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'organizations:detail' object.pk %}" class="btn btn-outline-secondary me-md-2">
+                            {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> {% trans "Save Changes" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Current Settings" %}</h5>
+                <ul class="list-unstyled">
+                    <li><strong>{% trans "Type:" %}</strong> {{ object.get_kind_display }}</li>
+                    <li><strong>{% trans "Language:" %}</strong> {{ object.get_locale_default_display }}</li>
+                    <li><strong>{% trans "Timezone:" %}</strong> {{ object.timezone }}</li>
+                    <li><strong>{% trans "Created:" %}</strong> {{ object.created_at|date:"M d, Y" }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

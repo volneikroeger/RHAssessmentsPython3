@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Social Accounts" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Social Account Connections" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Profile" %}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Connected Accounts" %}</h5>
+                <p class="text-muted">{% trans "Manage your social account connections for easier sign-in." %}</p>
+                
+                <div class="list-group">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-google text-danger me-3"></i>
+                            <div>
+                                <h6 class="mb-0">Google</h6>
+                                <small class="text-muted">{% trans "Sign in with your Google account" %}</small>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline-danger btn-sm" disabled>
+                            {% trans "Connect" %}
+                        </button>
+                    </div>
+                    
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-microsoft text-primary me-3"></i>
+                            <div>
+                                <h6 class="mb-0">Microsoft</h6>
+                                <small class="text-muted">{% trans "Sign in with your Microsoft account" %}</small>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline-primary btn-sm" disabled>
+                            {% trans "Connect" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Benefits" %}</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="bi bi-lightning text-warning"></i>
+                        {% trans "Faster sign-in process" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-shield-check text-success"></i>
+                        {% trans "Secure authentication" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-key text-info"></i>
+                        {% trans "No need to remember passwords" %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

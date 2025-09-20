@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Add Employee" %} - {{ object.name }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Add New Employee" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'organizations:employees' object.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Employees" %}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Employee Information" %}</h5>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_user" class="form-label">{% trans "User Account" %} *</label>
+                        <select class="form-select" id="id_user" name="user" required>
+                            <option value="">{% trans "Select user..." %}</option>
+                            <!-- Organization members would be populated here -->
+                        </select>
+                        <div class="form-text">{% trans "Select an existing user account or invite a new user first." %}</div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_department" class="form-label">{% trans "Department" %} *</label>
+                            <select class="form-select" id="id_department" name="department" required>
+                                <option value="">{% trans "Select department..." %}</option>
+                                <!-- Departments would be populated here -->
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_position" class="form-label">{% trans "Position" %} *</label>
+                            <select class="form-select" id="id_position" name="position" required>
+                                <option value="">{% trans "Select position..." %}</option>
+                                <!-- Positions would be populated here -->
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_employee_id" class="form-label">{% trans "Employee ID" %}</label>
+                            <input type="text" class="form-control" id="id_employee_id" name="employee_id" 
+                                   placeholder="{% trans 'Optional employee identifier' %}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_hire_date" class="form-label">{% trans "Hire Date" %} *</label>
+                            <input type="date" class="form-control" id="id_hire_date" name="hire_date" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_employment_type" class="form-label">{% trans "Employment Type" %} *</label>
+                            <select class="form-select" id="id_employment_type" name="employment_type" required>
+                                <option value="FULL_TIME">{% trans "Full Time" %}</option>
+                                <option value="PART_TIME">{% trans "Part Time" %}</option>
+                                <option value="CONTRACTOR">{% trans "Contractor" %}</option>
+                                <option value="INTERN">{% trans "Intern" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_manager" class="form-label">{% trans "Manager" %}</label>
+                            <select class="form-select" id="id_manager" name="manager">
+                                <option value="">{% trans "No direct manager" %}</option>
+                                <!-- Other employees would be populated here -->
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label for="id_salary" class="form-label">{% trans "Salary" %}</label>
+                            <input type="text" class="form-control" id="id_salary" name="salary" 
+                                   placeholder="{% trans 'Optional - will be encrypted' %}">
+                            <div class="form-text">{% trans "This information is encrypted and only visible to authorized personnel." %}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="id_currency" class="form-label">{% trans "Currency" %}</label>
+                            <select class="form-select" id="id_currency" name="currency">
+                                <option value="USD">USD</option>
+                                <option value="BRL">BRL</option>
+                                <option value="EUR">EUR</option>
+                                <option value="GBP">GBP</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'organizations:employees' object.pk %}" class="btn btn-outline-secondary me-md-2">
+                            {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> {% trans "Add Employee" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Before Adding Employees" %}</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        {% trans "Create departments" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        {% trans "Define positions" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-person-plus text-info"></i>
+                        {% trans "Invite users to organization" %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-shield-check text-warning"></i>
+                        {% trans "Ensure proper permissions" %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Quick Setup" %}</h5>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'organizations:departments' object.pk %}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-diagram-3"></i> {% trans "Manage Departments" %}
+                    </a>
+                    <a href="{% url 'organizations:invite' object.pk %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-person-plus"></i> {% trans "Invite Users" %}
+                    </a>
+                    <a href="{% url 'organizations:import_employees' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-upload"></i> {% trans "Bulk Import" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Privacy Notice" %}</h5>
+                <p class="small text-muted">
+                    {% trans "Salary information is encrypted and stored securely. Only authorized personnel with appropriate permissions can view this data." %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
