@@ -9,6 +9,12 @@ from .models import UsageMeter # Corrected import path
 
 User = get_user_model()
 
+# Helper function to get choices dynamically
+# This function will only be called when the form is instantiated,
+# ensuring that Django's App Registry is fully loaded.
+def get_usage_meter_choices():
+    return UsageMeter.USAGE_TYPES
+
 
 class PlanSelectionForm(forms.Form):
     """Form for selecting subscription plan."""
@@ -200,6 +206,14 @@ class UsageReportForm(forms.Form):
         initial=True
     )
     
+    # Pass the callable to choices
+    usage_types = forms.MultipleChoiceField(
+        choices=get_usage_meter_choices, # <--- THIS IS THE KEY CHANGE
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        label=_('Usage Types'),
+        required=False
+    )
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
@@ -211,15 +225,7 @@ class UsageReportForm(forms.Form):
         self.fields['date_from'].initial = thirty_days_ago
         self.fields['date_to'].initial = today
         
-        # Dynamically define usage_types field
-        self.fields['usage_types'] = forms.MultipleChoiceField(
-            # Removed 'choices=UsageMeter.USAGE_TYPES' from here
-            widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
-            label=_('Usage Types'),
-            required=False
-        )
-        # Assign choices AFTER the field is created and super().__init__() is called
-        self.fields['usage_types'].choices = UsageMeter.USAGE_TYPES
+        # No need to set choices here anymore, as it's handled by the callable
 
 
 class BillingSearchForm(forms.Form):
