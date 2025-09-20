@@ -9,6 +9,20 @@ from .models import (
 )
 
 
+class UsageMeterInline(admin.TabularInline):
+    model = UsageMeter
+    extra = 0
+    fields = ['usage_type', 'current_usage', 'limit', 'overage_usage', 'overage_cost']
+    readonly_fields = ['current_usage', 'overage_usage', 'overage_cost']
+
+
+class InvoiceInline(admin.TabularInline):
+    model = Invoice
+    extra = 0
+    fields = ['invoice_number', 'status', 'total_amount', 'due_date', 'paid_at']
+    readonly_fields = ['invoice_number', 'total_amount', 'paid_at']
+
+
 class PlanAdmin(admin.ModelAdmin):
     list_display = ['name', 'plan_type', 'price_monthly', 'max_assessments_per_month', 'max_team_members', 'is_active', 'is_public']
     list_filter = ['plan_type', 'is_active', 'is_public', 'includes_pdi', 'includes_recruiting']
@@ -42,20 +56,6 @@ class PlanAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         })
     )
-
-
-class UsageMeterInline(admin.TabularInline):
-    model = UsageMeter
-    extra = 0
-    fields = ['usage_type', 'current_usage', 'limit', 'overage_usage', 'overage_cost']
-    readonly_fields = ['current_usage', 'overage_usage', 'overage_cost']
-
-
-class InvoiceInline(admin.TabularInline):
-    model = Invoice
-    extra = 0
-    fields = ['invoice_number', 'status', 'total_amount', 'due_date', 'paid_at']
-    readonly_fields = ['invoice_number', 'total_amount', 'paid_at']
 
 
 class SubscriptionAdmin(admin.ModelAdmin):
