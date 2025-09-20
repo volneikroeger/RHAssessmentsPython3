@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "PDI Dashboard" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "PDI Dashboard" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group">
+            <a href="{% url 'pdi:list' %}" class="btn btn-outline-primary">
+                <i class="bi bi-list"></i> {% trans "All Plans" %}
+            </a>
+            <a href="{% url 'pdi:create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> {% trans "New Plan" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- User Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-primary">{{ user_stats.total_plans }}</h4>
+                <small class="text-muted">{% trans "My Plans" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-success">{{ user_stats.active_plans }}</h4>
+                <small class="text-muted">{% trans "Active" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-info">{{ user_stats.completed_plans }}</h4>
+                <small class="text-muted">{% trans "Completed" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-warning">{{ user_stats.avg_progress|floatformat:0 }}%</h4>
+                <small class="text-muted">{% trans "Avg Progress" %}</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Plans -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "My Recent PDI Plans" %}</h5>
+                
+                {% for plan in recent_plans %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">
+                                <a href="{% url 'pdi:detail' plan.pk %}" class="text-decoration-none">
+                                    {{ plan.title }}
+                                </a>
+                            </h6>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                {% if plan.status == 'COMPLETED' %}
+                                    <span class="badge bg-success">{{ plan.get_status_display }}</span>
+                                {% elif plan.status == 'APPROVED' or plan.status == 'IN_PROGRESS' %}
+                                    <span class="badge bg-primary">{{ plan.get_status_display }}</span>
+                                {% elif plan.status == 'PENDING_APPROVAL' %}
+                                    <span class="badge bg-warning">{{ plan.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ plan.get_status_display }}</span>
+                                {% endif %}
+                                
+                                {% if plan.priority == 'CRITICAL' %}
+                                    <span class="badge bg-danger">{{ plan.get_priority_display }}</span>
+                                {% elif plan.priority == 'HIGH' %}
+                                    <span class="badge bg-warning">{{ plan.get_priority_display }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="progress" style="height: 4px;">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: {{ plan.overall_progress }}%" 
+                                     aria-valuenow="{{ plan.overall_progress }}" 
+                                     aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end ms-3">
+                            <small class="text-muted">{{ plan.target_completion_date|date:"M d" }}</small>
+                            {% if plan.is_overdue %}
+                                <br><span class="badge bg-danger">{% trans "Overdue" %}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-graph-up display-4 text-muted"></i>
+                        <p class="mt-2 text-muted">{% trans "No PDI plans yet." %}</p>
+                        <a href="{% url 'pdi:create' %}" class="btn btn-primary">
+                            {% trans "Create Your First Plan" %}
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Upcoming Tasks and Alerts -->
+    <div class="col-md-4">
+        <!-- Overdue Tasks Alert -->
+        {% if overdue_tasks %}
+            <div class="card border-danger mb-3">
+                <div class="card-body">
+                    <h5 class="card-title text-danger">
+                        <i class="bi bi-exclamation-triangle"></i> {% trans "Overdue Tasks" %}
+                    </h5>
+                    {% for task in overdue_tasks %}
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <div class="fw-medium">{{ task.title }}</div>
+                                <small class="text-muted">{{ task.time_bound_deadline|date:"M d, Y" }}</small>
+                            </div>
+                            <span class="badge bg-danger">{{ task.days_remaining|add:"-1"|abs }}d</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Upcoming Tasks -->
+        {% if upcoming_tasks %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-calendar-check"></i> {% trans "Upcoming Deadlines" %}
+                    </h5>
+                    {% for task in upcoming_tasks %}
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <div class="fw-medium">{{ task.title }}</div>
+                                <small class="text-muted">{{ task.get_category_display }}</small>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">{{ task.time_bound_deadline|date:"M d" }}</small>
+                                <br><span class="badge bg-info">{{ task.days_remaining }}d</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Manager Section -->
+        {% if pending_approvals %}
+            <div class="card border-warning mb-3">
+                <div class="card-body">
+                    <h5 class="card-title text-warning">
+                        <i class="bi bi-clock"></i> {% trans "Pending Approvals" %}
+                    </h5>
+                    <p class="card-text">
+                        {% trans "You have" %} <strong>{{ pending_approvals }}</strong> 
+                        {% trans "PDI plans waiting for your approval." %}
+                    </p>
+                    <a href="{% url 'pdi:list' %}?status=PENDING_APPROVAL" class="btn btn-warning btn-sm">
+                        {% trans "Review Plans" %}
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+        
+        {% if team_plans %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-people"></i> {% trans "Team Plans" %}
+                    </h5>
+                    {% for plan in team_plans %}
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <div class="fw-medium">{{ plan.employee.full_name }}</div>
+                                <small class="text-muted">{{ plan.title|truncatewords:5 }}</small>
+                            </div>
+                            <div class="text-end">
+                                <div class="progress" style="width: 60px; height: 4px;">
+                                    <div class="progress-bar" style="width: {{ plan.overall_progress }}%"></div>
+                                </div>
+                                <small class="text-muted">{{ plan.overall_progress|floatformat:0 }}%</small>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    <div class="text-center mt-3">
+                        <a href="{% url 'pdi:list' %}" class="btn btn-outline-primary btn-sm">
+                            {% trans "View All Team Plans" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Quick Actions -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Quick Actions" %}</h5>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'pdi:create' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-plus-circle"></i> {% trans "Create PDI Plan" %}
+                    </a>
+                    <a href="{% url 'pdi:bulk_generate' %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-magic"></i> {% trans "Generate from Assessments" %}
+                    </a>
+                    <a href="{% url 'pdi:action_catalog' %}" class="btn btn-outline-info btn-sm">
+                        <i class="bi bi-book"></i> {% trans "Action Catalog" %}
+                    </a>
+                    <a href="{% url 'pdi:reports' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-bar-chart"></i> {% trans "Reports" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

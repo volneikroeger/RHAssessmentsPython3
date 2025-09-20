@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "PDI Plans" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Individual Development Plans" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'pdi:dashboard' %}" class="btn btn-outline-info">
+                <i class="bi bi-speedometer2"></i> {% trans "Dashboard" %}
+            </a>
+            <a href="{% url 'pdi:reports' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-bar-chart"></i> {% trans "Reports" %}
+            </a>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'pdi:bulk_generate' %}" class="btn btn-outline-success">
+                <i class="bi bi-magic"></i> {% trans "Generate from Assessments" %}
+            </a>
+            <a href="{% url 'pdi:create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> {% trans "Create PDI Plan" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-primary">{{ stats.total_plans }}</h4>
+                <small class="text-muted">{% trans "Total Plans" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-success">{{ stats.active_plans }}</h4>
+                <small class="text-muted">{% trans "Active Plans" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-warning">{{ stats.pending_approval }}</h4>
+                <small class="text-muted">{% trans "Pending Approval" %}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h4 class="text-info">{{ stats.completed_plans }}</h4>
+                <small class="text-muted">{% trans "Completed" %}</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        {{ search_form.search }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ search_form.status }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ search_form.priority }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ search_form.employee }}
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-search"></i> {% trans "Search" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PDI Plans List -->
+<div class="row">
+    {% for pdi_plan in pdi_plans %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 pdi-plan-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-success text-white rounded d-flex align-items-center justify-content-center me-3" 
+                             style="width: 48px; height: 48px;">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0">{{ pdi_plan.title }}</h5>
+                            <small class="text-muted">{{ pdi_plan.employee.full_name }}</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <small class="text-muted">{% trans "Progress" %}</small>
+                            <small class="fw-bold">{{ pdi_plan.overall_progress|floatformat:0 }}%</small>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: {{ pdi_plan.overall_progress }}%" 
+                                 aria-valuenow="{{ pdi_plan.overall_progress }}" 
+                                 aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Status and Priority -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            {% if pdi_plan.status == 'COMPLETED' %}
+                                <span class="badge bg-success">{{ pdi_plan.get_status_display }}</span>
+                            {% elif pdi_plan.status == 'APPROVED' or pdi_plan.status == 'IN_PROGRESS' %}
+                                <span class="badge bg-primary">{{ pdi_plan.get_status_display }}</span>
+                            {% elif pdi_plan.status == 'PENDING_APPROVAL' %}
+                                <span class="badge bg-warning">{{ pdi_plan.get_status_display }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ pdi_plan.get_status_display }}</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            {% if pdi_plan.priority == 'CRITICAL' %}
+                                <span class="badge bg-danger">{{ pdi_plan.get_priority_display }}</span>
+                            {% elif pdi_plan.priority == 'HIGH' %}
+                                <span class="badge bg-warning">{{ pdi_plan.get_priority_display }}</span>
+                            {% elif pdi_plan.priority == 'MEDIUM' %}
+                                <span class="badge bg-info">{{ pdi_plan.get_priority_display }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ pdi_plan.get_priority_display }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Timeline -->
+                    <div class="row text-center mb-3">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h6 class="text-primary">{{ pdi_plan.tasks.filter.is_active.count }}</h6>
+                                <small class="text-muted">{% trans "Tasks" %}</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="{% if pdi_plan.is_overdue %}text-danger{% else %}text-success{% endif %}">
+                                {{ pdi_plan.days_remaining }}
+                            </h6>
+                            <small class="text-muted">{% trans "Days Left" %}</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Manager Info -->
+                    {% if pdi_plan.manager %}
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <i class="bi bi-person-badge"></i> 
+                                {% trans "Manager:" %} {{ pdi_plan.manager.full_name }}
+                            </small>
+                        </p>
+                    {% endif %}
+                    
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'pdi:detail' pdi_plan.pk %}" class="btn btn-outline-primary btn-sm">
+                                {% trans "View" %}
+                            </a>
+                            <a href="{% url 'pdi:update' pdi_plan.pk %}" class="btn btn-outline-secondary btn-sm">
+                                {% trans "Edit" %}
+                            </a>
+                        </div>
+                        
+                        {% if pdi_plan.is_overdue %}
+                            <span class="badge bg-danger">{% trans "Overdue" %}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-transparent">
+                    <small class="text-muted">
+                        {% trans "Target:" %} {{ pdi_plan.target_completion_date|date:"M d, Y" }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-graph-up display-1 text-muted"></i>
+                <h3 class="mt-3">{% trans "No PDI Plans Yet" %}</h3>
+                <p class="text-muted">
+                    {% trans "Create individual development plans to help employees grow and develop their skills." %}
+                </p>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="{% url 'pdi:bulk_generate' %}" class="btn btn-success">
+                        <i class="bi bi-magic"></i> {% trans "Generate from Assessments" %}
+                    </a>
+                    <a href="{% url 'pdi:create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> {% trans "Create Manual Plan" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+    <nav aria-label="{% trans 'PDI plans pagination' %}">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.priority %}&priority={{ request.GET.priority }}{% endif %}{% if request.GET.employee %}&employee={{ request.GET.employee }}{% endif %}">
+                        {% trans "First" %}
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.priority %}&priority={{ request.GET.priority }}{% endif %}{% if request.GET.employee %}&employee={{ request.GET.employee }}{% endif %}">
+                        {% trans "Previous" %}
+                    </a>
+                </li>
+            {% endif %}
+            
+            <li class="page-item active">
+                <span class="page-link">
+                    {% trans "Page" %} {{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.priority %}&priority={{ request.GET.priority }}{% endif %}{% if request.GET.employee %}&employee={{ request.GET.employee }}{% endif %}">
+                        {% trans "Next" %}
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.priority %}&priority={{ request.GET.priority }}{% endif %}{% if request.GET.employee %}&employee={{ request.GET.employee }}{% endif %}">
+                        {% trans "Last" %}
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.pdi-plan-card {
+    transition: transform 0.2s;
+}
+
+.pdi-plan-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+
+.progress-bar {
+    background-color: var(--primary-color, #007bff);
+    transition: width 0.3s ease;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,514 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ pdi_plan.title }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <div class="d-flex align-items-center">
+        <div class="bg-success text-white rounded d-flex align-items-center justify-content-center me-3" 
+             style="width: 64px; height: 64px; font-size: 24px;">
+            <i class="bi bi-graph-up"></i>
+        </div>
+        <div>
+            <h1 class="h2 mb-0">{{ pdi_plan.title }}</h1>
+            <p class="text-muted mb-0">{{ pdi_plan.employee.full_name }} - {{ pdi_plan.get_status_display }}</p>
+        </div>
+    </div>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'pdi:list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> {% trans "Back to Plans" %}
+            </a>
+        </div>
+        {% if can_edit %}
+            <div class="btn-group">
+                <a href="{% url 'pdi:update' pdi_plan.pk %}" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil"></i> {% trans "Edit Plan" %}
+                </a>
+                <a href="{% url 'pdi:create_task' pdi_plan.pk %}" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> {% trans "Add Task" %}
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Plan Overview -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Plan Overview" %}</h5>
+                
+                {% if pdi_plan.description %}
+                    <p class="card-text">{{ pdi_plan.description }}</p>
+                {% endif %}
+                
+                <!-- Progress Bar -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-medium">{% trans "Overall Progress" %}</span>
+                        <span class="badge bg-primary">{{ pdi_plan.overall_progress|floatformat:1 }}%</span>
+                    </div>
+                    <div class="progress" style="height: 12px;">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: {{ pdi_plan.overall_progress }}%" 
+                             aria-valuenow="{{ pdi_plan.overall_progress }}" 
+                             aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Plan Details -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>{% trans "Employee:" %}</strong></div>
+                            <div class="col-sm-7">{{ pdi_plan.employee.full_name }}</div>
+                        </div>
+                        {% if pdi_plan.manager %}
+                            <div class="row mb-2">
+                                <div class="col-sm-5"><strong>{% trans "Manager:" %}</strong></div>
+                                <div class="col-sm-7">{{ pdi_plan.manager.full_name }}</div>
+                            </div>
+                        {% endif %}
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>{% trans "Priority:" %}</strong></div>
+                            <div class="col-sm-7">
+                                {% if pdi_plan.priority == 'CRITICAL' %}
+                                    <span class="badge bg-danger">{{ pdi_plan.get_priority_display }}</span>
+                                {% elif pdi_plan.priority == 'HIGH' %}
+                                    <span class="badge bg-warning">{{ pdi_plan.get_priority_display }}</span>
+                                {% elif pdi_plan.priority == 'MEDIUM' %}
+                                    <span class="badge bg-info">{{ pdi_plan.get_priority_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ pdi_plan.get_priority_display }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>{% trans "Start Date:" %}</strong></div>
+                            <div class="col-sm-7">{{ pdi_plan.start_date|date:"M d, Y" }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>{% trans "Target Date:" %}</strong></div>
+                            <div class="col-sm-7">
+                                {{ pdi_plan.target_completion_date|date:"M d, Y" }}
+                                {% if pdi_plan.is_overdue %}
+                                    <span class="badge bg-danger ms-1">{% trans "Overdue" %}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-5"><strong>{% trans "Days Left:" %}</strong></div>
+                            <div class="col-sm-7">
+                                <span class="{% if pdi_plan.days_remaining < 7 %}text-danger{% elif pdi_plan.days_remaining < 30 %}text-warning{% else %}text-success{% endif %}">
+                                    {{ pdi_plan.days_remaining }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Approval Status -->
+                {% if pdi_plan.status == 'PENDING_APPROVAL' and can_approve %}
+                    <div class="alert alert-warning mt-3">
+                        <h6><i class="bi bi-clock"></i> {% trans "Approval Required" %}</h6>
+                        <p class="mb-2">{% trans "This PDI plan is waiting for your approval." %}</p>
+                        <a href="{% url 'pdi:approve' pdi_plan.pk %}" class="btn btn-warning btn-sm">
+                            <i class="bi bi-check-circle"></i> {% trans "Review & Approve" %}
+                        </a>
+                    </div>
+                {% elif pdi_plan.approved_at %}
+                    <div class="alert alert-success mt-3">
+                        <small>
+                            <i class="bi bi-check-circle"></i>
+                            {% trans "Approved by" %} {{ pdi_plan.approved_by.full_name }} 
+                            {% trans "on" %} {{ pdi_plan.approved_at|date:"M d, Y" }}
+                            {% if pdi_plan.approval_notes %}
+                                <br><em>"{{ pdi_plan.approval_notes }}"</em>
+                            {% endif %}
+                        </small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Stats -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Plan Statistics" %}</h5>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-primary">{{ tasks.count }}</h4>
+                            <small class="text-muted">{% trans "Total Tasks" %}</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">{{ tasks.filter.status='COMPLETED'.count }}</h4>
+                        <small class="text-muted">{% trans "Completed" %}</small>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-warning">{{ tasks.filter.status='IN_PROGRESS'.count }}</h4>
+                            <small class="text-muted">{% trans "In Progress" %}</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-info">{{ tasks.filter.status='NOT_STARTED'.count }}</h4>
+                        <small class="text-muted">{% trans "Not Started" %}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Source Assessment -->
+        {% if pdi_plan.source_assessment %}
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Source Assessment" %}</h5>
+                    <p class="card-text">
+                        <strong>{{ pdi_plan.source_assessment.assessment.name }}</strong>
+                        <br><small class="text-muted">
+                            {% trans "Completed on" %} {{ pdi_plan.source_assessment.completed_at|date:"M d, Y" }}
+                        </small>
+                    </p>
+                    <a href="{% url 'assessments:result' pdi_plan.source_assessment.token %}" class="btn btn-outline-primary btn-sm">
+                        {% trans "View Assessment Results" %}
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Tasks by Category -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Development Tasks" %}</h5>
+                
+                {% for category, category_tasks in tasks_by_category.items %}
+                    <div class="mb-4">
+                        <h6 class="text-primary border-bottom pb-2">
+                            <i class="bi bi-tag"></i> {{ category }}
+                        </h6>
+                        
+                        {% for task in category_tasks %}
+                            <div class="pdi-task {% if task.status == 'COMPLETED' %}completed{% endif %} mb-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">{{ task.title }}</h6>
+                                        <p class="text-muted mb-2">{{ task.description|truncatewords:20 }}</p>
+                                        
+                                        <!-- Progress -->
+                                        <div class="d-flex align-items-center gap-3 mb-2">
+                                            <div class="progress flex-grow-1" style="height: 6px;">
+                                                <div class="progress-bar" role="progressbar" 
+                                                     style="width: {{ task.progress_percentage }}%" 
+                                                     aria-valuenow="{{ task.progress_percentage }}" 
+                                                     aria-valuemin="0" aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">{{ task.progress_percentage|floatformat:0 }}%</small>
+                                        </div>
+                                        
+                                        <!-- Task Details -->
+                                        <div class="d-flex align-items-center gap-3">
+                                            {% if task.status == 'COMPLETED' %}
+                                                <span class="badge bg-success">{{ task.get_status_display }}</span>
+                                            {% elif task.status == 'IN_PROGRESS' %}
+                                                <span class="badge bg-primary">{{ task.get_status_display }}</span>
+                                            {% elif task.is_overdue %}
+                                                <span class="badge bg-danger">{% trans "Overdue" %}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ task.get_status_display }}</span>
+                                            {% endif %}
+                                            
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar"></i> {{ task.time_bound_deadline|date:"M d, Y" }}
+                                            </small>
+                                            
+                                            {% if task.assigned_mentor %}
+                                                <small class="text-muted">
+                                                    <i class="bi bi-person-badge"></i> {{ task.assigned_mentor.full_name }}
+                                                </small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Task Actions -->
+                                    <div class="btn-group btn-group-sm">
+                                        {% if can_edit %}
+                                            <button type="button" class="btn btn-outline-primary" 
+                                                    data-bs-toggle="modal" data-bs-target="#progressModal{{ task.id }}">
+                                                <i class="bi bi-arrow-up-circle"></i> {% trans "Update" %}
+                                            </button>
+                                            <a href="{% url 'pdi:update_task' task.pk %}" class="btn btn-outline-secondary">
+                                                <i class="bi bi-pencil"></i> {% trans "Edit" %}
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- SMART Goal Details (Collapsible) -->
+                                <div class="mt-3">
+                                    <button class="btn btn-link btn-sm p-0 text-decoration-none" type="button" 
+                                            data-bs-toggle="collapse" data-bs-target="#smartGoal{{ task.id }}">
+                                        <i class="bi bi-info-circle"></i> {% trans "View SMART Goal Details" %}
+                                    </button>
+                                    
+                                    <div class="collapse mt-2" id="smartGoal{{ task.id }}">
+                                        <div class="card card-body bg-light">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <strong>{% trans "Specific:" %}</strong>
+                                                    <p class="small">{{ task.specific_objective|default:"—" }}</p>
+                                                    
+                                                    <strong>{% trans "Measurable:" %}</strong>
+                                                    <p class="small">{{ task.measurable_criteria|default:"—" }}</p>
+                                                    
+                                                    <strong>{% trans "Achievable:" %}</strong>
+                                                    <p class="small">{{ task.achievable_steps|default:"—" }}</p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <strong>{% trans "Relevant:" %}</strong>
+                                                    <p class="small">{{ task.relevant_justification|default:"—" }}</p>
+                                                    
+                                                    <strong>{% trans "Time-bound:" %}</strong>
+                                                    <p class="small">{{ task.time_bound_deadline|date:"F d, Y" }}</p>
+                                                    
+                                                    {% if task.required_resources %}
+                                                        <strong>{% trans "Resources:" %}</strong>
+                                                        <p class="small">{{ task.required_resources }}</p>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% empty %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-list-task display-4 text-muted"></i>
+                        <h4 class="mt-3">{% trans "No Tasks Yet" %}</h4>
+                        <p class="text-muted">{% trans "Add development tasks to this PDI plan." %}</p>
+                        {% if can_edit %}
+                            <a href="{% url 'pdi:create_task' pdi_plan.pk %}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> {% trans "Add First Task" %}
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Comments Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Comments & Feedback" %}</h5>
+                
+                <!-- Add Comment Form -->
+                {% if can_edit %}
+                    <form id="commentForm" class="mb-4">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <textarea class="form-control" id="commentContent" rows="3" 
+                                      placeholder="{% trans 'Add a comment or feedback...' %}" required></textarea>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="isPrivate">
+                                <label class="form-check-label" for="isPrivate">
+                                    {% trans "Private comment (only visible to employee, manager, and HR)" %}
+                                </label>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-chat-dots"></i> {% trans "Add Comment" %}
+                            </button>
+                        </div>
+                    </form>
+                {% endif %}
+                
+                <!-- Comments List -->
+                <div id="commentsList">
+                    {% for comment in recent_comments %}
+                        <div class="d-flex align-items-start border-bottom py-3">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 40px; height: 40px;">
+                                {{ comment.author.first_name|first|default:comment.author.email|first|upper }}
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <strong>{{ comment.author.full_name }}</strong>
+                                    <small class="text-muted">{{ comment.created_at|date:"M d, Y g:i A" }}</small>
+                                </div>
+                                <p class="mb-1">{{ comment.content|linebreaks }}</p>
+                                {% if comment.is_private %}
+                                    <small class="text-warning">
+                                        <i class="bi bi-lock"></i> {% trans "Private comment" %}
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-3">
+                            <i class="bi bi-chat-dots text-muted"></i>
+                            <p class="text-muted mb-0">{% trans "No comments yet." %}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Progress Update Modals -->
+{% for task in tasks %}
+    <div class="modal fade" id="progressModal{{ task.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{% trans "Update Progress" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="progressForm{{ task.id }}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Task:" %} {{ task.title }}</label>
+                        </div>
+                        <div class="mb-3">
+                            <label for="progress{{ task.id }}" class="form-label">{% trans "Progress Percentage" %}</label>
+                            <input type="range" class="form-range" id="progress{{ task.id }}" 
+                                   min="0" max="100" step="5" value="{{ task.progress_percentage }}">
+                            <div class="d-flex justify-content-between">
+                                <small class="text-muted">0%</small>
+                                <span id="progressValue{{ task.id }}" class="fw-bold">{{ task.progress_percentage|floatformat:0 }}%</span>
+                                <small class="text-muted">100%</small>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="notes{{ task.id }}" class="form-label">{% trans "Progress Notes" %}</label>
+                            <textarea class="form-control" id="notes{{ task.id }}" rows="3" 
+                                      placeholder="{% trans 'Describe what you have accomplished...' %}"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="button" class="btn btn-primary" onclick="updateTaskProgress('{{ task.id }}')">
+                        {% trans "Update Progress" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Progress slider updates
+document.addEventListener('DOMContentLoaded', function() {
+    {% for task in tasks %}
+        const slider{{ task.id }} = document.getElementById('progress{{ task.id }}');
+        const value{{ task.id }} = document.getElementById('progressValue{{ task.id }}');
+        
+        slider{{ task.id }}.addEventListener('input', function() {
+            value{{ task.id }}.textContent = this.value + '%';
+        });
+    {% endfor %}
+});
+
+// Update task progress
+function updateTaskProgress(taskId) {
+    const progress = document.getElementById('progress' + taskId).value;
+    const notes = document.getElementById('notes' + taskId).value;
+    
+    fetch(`/pdi/tasks/${taskId}/progress/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `progress=${progress}&notes=${encodeURIComponent(notes)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('progressModal' + taskId));
+            modal.hide();
+            
+            // Reload page to show updated progress
+            location.reload();
+        } else {
+            alert('Error updating progress: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating progress');
+    });
+}
+
+// Add comment
+document.getElementById('commentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const content = document.getElementById('commentContent').value;
+    const isPrivate = document.getElementById('isPrivate').checked;
+    
+    if (!content.trim()) {
+        alert('{% trans "Please enter a comment" %}');
+        return;
+    }
+    
+    fetch(`/pdi/plans/{{ pdi_plan.pk }}/comment/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `content=${encodeURIComponent(content)}&is_private=${isPrivate}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Clear form
+            document.getElementById('commentContent').value = '';
+            document.getElementById('isPrivate').checked = false;
+            
+            // Reload page to show new comment
+            location.reload();
+        } else {
+            alert('Error adding comment: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding comment');
+    });
+});
+</script>
+{% endblock %}
