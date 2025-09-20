@@ -64,6 +64,15 @@ services:
         python manage.py makemigrations accounts &&
         python manage.py migrate accounts &&
         python manage.py migrate account &&
+        python manage.py makemigrations organizations &&
+        python manage.py makemigrations assessments &&
+        python manage.py makemigrations pdi &&
+        python manage.py makemigrations recruiting &&
+        python manage.py makemigrations billing &&
+        python manage.py makemigrations reports &&
+        python manage.py makemigrations audit &&
+        python manage.py makemigrations dashboard &&
+        python manage.py makemigrations emails &&
         python manage.py migrate django_celery_beat &&
         python manage.py migrate &&
         echo 'Starting Gunicorn server' &&
