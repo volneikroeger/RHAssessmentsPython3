@@ -429,13 +429,13 @@ class PDIActionCatalog(BaseTenantModel):
     estimated_duration = models.PositiveIntegerField(_('estimated duration (hours)'), default=1)
     difficulty_level = models.CharField(
         _('difficulty level'),
-        max_length=10,
+        max_length=20,
         choices=[
             ('BEGINNER', _('Beginner')),
             ('INTERMEDIATE', _('Intermediate')),
             ('ADVANCED', _('Advanced')),
         ],
-        default='INTERMEDIATE', max_length=20
+        default='INTERMEDIATE'
     )
     
     # Resources
