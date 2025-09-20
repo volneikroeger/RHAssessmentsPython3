@@ -64,6 +64,19 @@ class TenantMiddleware(MiddlewareMixin):
                     tenant_slug = parts[2]
                     tenant = self._get_tenant_by_slug(tenant_slug)
         
+        # If no tenant resolved yet, try user's primary organization
+        if not tenant and hasattr(request, 'user') and request.user.is_authenticated:
+            try:
+                primary_membership = request.user.memberships.filter(
+                    is_primary=True, 
+                    is_active=True
+                ).select_related('organization').first()
+                if primary_membership:
+                    tenant = primary_membership.organization
+            except Exception:
+                # Handle case where user model might not have memberships yet
+                pass
+        
         # Set tenant in request and thread-local
         request.tenant = tenant
         set_current_tenant(tenant)
