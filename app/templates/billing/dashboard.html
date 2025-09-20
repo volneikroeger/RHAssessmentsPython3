@@ -1,0 +1,341 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Billing Dashboard" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Billing & Subscription" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        {% if not current_subscription %}
+            <div class="btn-group">
+                <a href="{% url 'billing:subscribe' %}" class="btn btn-primary">
+                    <i class="bi bi-credit-card"></i> {% trans "Subscribe Now" %}
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if current_subscription %}
+    <!-- Current Subscription -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5 class="card-title">{% trans "Current Subscription" %}</h5>
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <h3 class="mb-0">{{ current_subscription.plan.name }}</h3>
+                                {% if current_subscription.status == 'ACTIVE' %}
+                                    <span class="badge bg-success">{{ current_subscription.get_status_display }}</span>
+                                {% elif current_subscription.status == 'TRIALING' %}
+                                    <span class="badge bg-info">{{ current_subscription.get_status_display }}</span>
+                                {% elif current_subscription.status == 'PAST_DUE' %}
+                                    <span class="badge bg-danger">{{ current_subscription.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ current_subscription.get_status_display }}</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>{% trans "Plan:" %}</strong> {{ current_subscription.plan.get_plan_type_display }}</p>
+                                    <p class="mb-1"><strong>{% trans "Billing:" %}</strong> {{ current_subscription.get_billing_cycle_display }}</p>
+                                    <p class="mb-1"><strong>{% trans "Amount:" %}</strong> {{ current_subscription.amount }} {{ current_subscription.currency }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>{% trans "Current Period:" %}</strong> {{ current_subscription.current_period_start|date:"M d" }} - {{ current_subscription.current_period_end|date:"M d, Y" }}</p>
+                                    <p class="mb-1"><strong>{% trans "Next Renewal:" %}</strong> {{ current_subscription.current_period_end|date:"M d, Y" }}</p>
+                                    <p class="mb-1"><strong>{% trans "Days Until Renewal:" %}</strong> 
+                                        <span class="{% if current_subscription.days_until_renewal < 7 %}text-warning{% else %}text-success{% endif %}">
+                                            {{ current_subscription.days_until_renewal }}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'billing:subscription_update' %}" class="btn btn-outline-primary">
+                                    <i class="bi bi-arrow-up-circle"></i> {% trans "Upgrade/Downgrade" %}
+                                </a>
+                                <a href="{% url 'billing:cancel_subscription' %}" class="btn btn-outline-danger">
+                                    <i class="bi bi-x-circle"></i> {% trans "Cancel Subscription" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Usage Meters -->
+    {% if usage_meters %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{% trans "Current Usage" %}</h5>
+                        <div class="row">
+                            {% for meter in usage_meters %}
+                                <div class="col-md-6 col-lg-3 mb-3">
+                                    <div class="text-center">
+                                        <h6>{{ meter.get_usage_type_display }}</h6>
+                                        <div class="progress mb-2" style="height: 8px;">
+                                            <div class="progress-bar {% if meter.is_over_limit %}bg-danger{% elif meter.usage_percentage >= 80 %}bg-warning{% else %}bg-success{% endif %}" 
+                                                 role="progressbar" 
+                                                 style="width: {{ meter.usage_percentage }}%" 
+                                                 aria-valuenow="{{ meter.usage_percentage }}" 
+                                                 aria-valuemin="0" aria-valuemax="100">
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">
+                                            {{ meter.current_usage }} / {{ meter.limit }}
+                                            {% if meter.is_over_limit %}
+                                                <br><span class="text-danger">{% trans "Over limit" %}</span>
+                                            {% endif %}
+                                        </small>
+                                        {% if meter.overage_cost > 0 %}
+                                            <br><small class="text-warning">
+                                                {% trans "Overage:" %} {{ meter.overage_cost }} {{ current_subscription.currency }}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Billing Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="text-success">{{ billing_stats.total_paid|floatformat:2 }}</h4>
+                    <small class="text-muted">{% trans "Total Paid" %} ({{ current_subscription.currency }})</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="text-warning">{{ billing_stats.pending_invoices }}</h4>
+                    <small class="text-muted">{% trans "Pending Invoices" %}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="text-danger">{{ billing_stats.failed_payments }}</h4>
+                    <small class="text-muted">{% trans "Failed Payments" %}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Recent Invoices -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">{% trans "Recent Invoices" %}</h5>
+                        <a href="{% url 'billing:invoice_list' %}" class="btn btn-outline-primary btn-sm">
+                            {% trans "View All" %}
+                        </a>
+                    </div>
+                    
+                    {% for invoice in recent_invoices %}
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+                            <div>
+                                <h6 class="mb-1">
+                                    <a href="{% url 'billing:invoice_detail' invoice.pk %}" class="text-decoration-none">
+                                        {{ invoice.invoice_number }}
+                                    </a>
+                                </h6>
+                                <small class="text-muted">
+                                    {{ invoice.period_start|date:"M d" }} - {{ invoice.period_end|date:"M d, Y" }}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold">{{ invoice.total_amount }} {{ invoice.currency }}</div>
+                                {% if invoice.status == 'PAID' %}
+                                    <span class="badge bg-success">{{ invoice.get_status_display }}</span>
+                                {% elif invoice.status == 'OPEN' %}
+                                    <span class="badge bg-warning">{{ invoice.get_status_display }}</span>
+                                {% elif invoice.status == 'PAST_DUE' %}
+                                    <span class="badge bg-danger">{{ invoice.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ invoice.get_status_display }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-receipt display-4 text-muted"></i>
+                            <p class="mt-2 text-muted">{% trans "No invoices yet." %}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payment Methods -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0">{% trans "Payment Methods" %}</h5>
+                        <button type="button" class="btn btn-outline-primary btn-sm" disabled>
+                            <i class="bi bi-plus-circle"></i> {% trans "Add" %}
+                        </button>
+                    </div>
+                    
+                    {% for payment_method in payment_methods %}
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <div class="fw-medium">{{ payment_method }}</div>
+                                <small class="text-muted">{{ payment_method.get_method_type_display }}</small>
+                            </div>
+                            <div>
+                                {% if payment_method.is_default %}
+                                    <span class="badge bg-primary">{% trans "Default" %}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-center py-3">
+                            <i class="bi bi-credit-card text-muted"></i>
+                            <p class="text-muted mb-0">{% trans "No payment methods." %}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Quick Actions" %}</h5>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'billing:invoice_list' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-receipt"></i> {% trans "View Invoices" %}
+                        </a>
+                        <a href="{% url 'billing:usage_report' %}" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-graph-up"></i> {% trans "Usage Report" %}
+                        </a>
+                        <a href="{% url 'billing:billing_address' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-geo-alt"></i> {% trans "Billing Address" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+{% else %}
+    <!-- No Subscription -->
+    <div class="row">
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-credit-card display-1 text-muted"></i>
+                <h3 class="mt-3">{% trans "No Active Subscription" %}</h3>
+                <p class="text-muted">
+                    {% trans "Subscribe to a plan to access premium features and start using the platform." %}
+                </p>
+                <a href="{% url 'billing:subscribe' %}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-credit-card"></i> {% trans "Choose a Plan" %}
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Available Plans Preview -->
+    {% if available_plans %}
+        <div class="row mt-5">
+            <div class="col-12">
+                <h4 class="text-center mb-4">{% trans "Available Plans" %}</h4>
+                <div class="row">
+                    {% for plan in available_plans|slice:":3" %}
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100 {% if plan.plan_type == 'PROFESSIONAL' %}border-primary{% endif %}">
+                                {% if plan.plan_type == 'PROFESSIONAL' %}
+                                    <div class="card-header bg-primary text-white text-center">
+                                        <small>{% trans "Most Popular" %}</small>
+                                    </div>
+                                {% endif %}
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">{{ plan.name }}</h5>
+                                    <div class="mb-3">
+                                        <span class="h2">${{ plan.price_monthly }}</span>
+                                        <small class="text-muted">/{% trans "month" %}</small>
+                                    </div>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2">
+                                            <i class="bi bi-check-circle text-success"></i>
+                                            {{ plan.max_assessments_per_month }} {% trans "assessments/month" %}
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="bi bi-check-circle text-success"></i>
+                                            {{ plan.max_team_members }} {% trans "team members" %}
+                                        </li>
+                                        {% if plan.includes_pdi %}
+                                            <li class="mb-2">
+                                                <i class="bi bi-check-circle text-success"></i>
+                                                {% trans "PDI Plans" %}
+                                            </li>
+                                        {% endif %}
+                                        {% if plan.includes_recruiting %}
+                                            <li class="mb-2">
+                                                <i class="bi bi-check-circle text-success"></i>
+                                                {% trans "Recruiting Tools" %}
+                                            </li>
+                                        {% endif %}
+                                        {% if plan.includes_advanced_reports %}
+                                            <li class="mb-2">
+                                                <i class="bi bi-check-circle text-success"></i>
+                                                {% trans "Advanced Reports" %}
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                                <div class="card-footer">
+                                    <a href="{% url 'billing:subscribe' %}" class="btn btn-outline-primary w-100">
+                                        {% trans "Select Plan" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load billing analytics if subscription exists
+    {% if current_subscription %}
+        fetch('{% url "billing:analytics_data" %}')
+            .then(response => response.json())
+            .then(data => {
+                // Could render charts here
+                console.log('Billing analytics loaded:', data);
+            })
+            .catch(error => {
+                console.error('Error loading billing analytics:', error);
+            });
+    {% endif %}
+});
+</script>
+{% endblock %}

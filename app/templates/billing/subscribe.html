@@ -1,0 +1,342 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Subscribe to Plan" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Choose Your Plan" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'billing:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Billing" %}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <!-- Plan Comparison -->
+        <div class="row mb-5">
+            {% for plan in plans %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 {% if plan.plan_type == 'PROFESSIONAL' %}border-primary{% endif %}">
+                        {% if plan.plan_type == 'PROFESSIONAL' %}
+                            <div class="card-header bg-primary text-white text-center">
+                                <small>{% trans "Most Popular" %}</small>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <div class="text-center mb-4">
+                                <h4>{{ plan.name }}</h4>
+                                <div class="mb-3">
+                                    <span class="h2">${{ plan.price_monthly }}</span>
+                                    <small class="text-muted">/{% trans "month" %}</small>
+                                </div>
+                                {% if plan.description %}
+                                    <p class="text-muted">{{ plan.description }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success"></i>
+                                    <strong>{{ plan.max_assessments_per_month }}</strong> {% trans "assessments per month" %}
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success"></i>
+                                    <strong>{{ plan.max_team_members }}</strong> {% trans "team members" %}
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success"></i>
+                                    <strong>{{ plan.max_storage_gb }}GB</strong> {% trans "storage" %}
+                                </li>
+                                
+                                {% if plan.includes_pdi %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-check-circle text-success"></i>
+                                        {% trans "Individual Development Plans (PDI)" %}
+                                    </li>
+                                {% else %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-x-circle text-muted"></i>
+                                        {% trans "Individual Development Plans (PDI)" %}
+                                    </li>
+                                {% endif %}
+                                
+                                {% if plan.includes_recruiting %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-check-circle text-success"></i>
+                                        {% trans "Recruiting & Selection Tools" %}
+                                    </li>
+                                {% else %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-x-circle text-muted"></i>
+                                        {% trans "Recruiting & Selection Tools" %}
+                                    </li>
+                                {% endif %}
+                                
+                                {% if plan.includes_advanced_reports %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-check-circle text-success"></i>
+                                        {% trans "Advanced Reports & Analytics" %}
+                                    </li>
+                                {% else %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-x-circle text-muted"></i>
+                                        {% trans "Advanced Reports & Analytics" %}
+                                    </li>
+                                {% endif %}
+                                
+                                {% if plan.includes_api_access %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-check-circle text-success"></i>
+                                        {% trans "API Access" %}
+                                    </li>
+                                {% else %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-x-circle text-muted"></i>
+                                        {% trans "API Access" %}
+                                    </li>
+                                {% endif %}
+                                
+                                {% if plan.includes_priority_support %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-check-circle text-success"></i>
+                                        {% trans "Priority Support" %}
+                                    </li>
+                                {% else %}
+                                    <li class="mb-2">
+                                        <i class="bi bi-x-circle text-muted"></i>
+                                        {% trans "Priority Support" %}
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Subscription Form -->
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{% trans "Complete Your Subscription" %}</h5>
+                        
+                        <form method="post" id="subscriptionForm">
+                            {% csrf_token %}
+                            
+                            <div class="mb-4">
+                                <label class="form-label">{{ form.plan.label }} *</label>
+                                <div class="row">
+                                    {% for choice in form.plan %}
+                                        <div class="col-md-4 mb-2">
+                                            <div class="form-check">
+                                                {{ choice.tag }}
+                                                <label class="form-check-label w-100" for="{{ choice.id_for_label }}">
+                                                    <div class="card">
+                                                        <div class="card-body text-center">
+                                                            <h6>{{ choice.choice_label.name }}</h6>
+                                                            <div class="h5 text-primary">${{ choice.choice_label.price_monthly }}</div>
+                                                            <small class="text-muted">/{% trans "month" %}</small>
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                {% if form.plan.errors %}
+                                    <div class="text-danger">{{ form.plan.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">{{ form.billing_cycle.label }} *</label>
+                                <div class="row">
+                                    {% for choice in form.billing_cycle %}
+                                        <div class="col-md-4 mb-2">
+                                            <div class="form-check">
+                                                {{ choice.tag }}
+                                                <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                                    {{ choice.choice_label }}
+                                                    {% if choice.choice_value == 'YEARLY' %}
+                                                        <span class="badge bg-success ms-1">{% trans "Save 20%" %}</span>
+                                                    {% endif %}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                {% if form.billing_cycle.errors %}
+                                    <div class="text-danger">{{ form.billing_cycle.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="{{ form.coupon_code.id_for_label }}" class="form-label">{{ form.coupon_code.label }}</label>
+                                <div class="input-group">
+                                    {{ form.coupon_code }}
+                                    <button type="button" class="btn btn-outline-secondary" id="validateCoupon">
+                                        {% trans "Apply" %}
+                                    </button>
+                                </div>
+                                {% if form.coupon_code.errors %}
+                                    <div class="text-danger">{{ form.coupon_code.errors }}</div>
+                                {% endif %}
+                                <div id="couponFeedback" class="mt-2"></div>
+                            </div>
+                            
+                            <!-- Order Summary -->
+                            <div class="card bg-light mb-4">
+                                <div class="card-body">
+                                    <h6>{% trans "Order Summary" %}</h6>
+                                    <div class="d-flex justify-content-between">
+                                        <span id="selectedPlanName">{% trans "Select a plan" %}</span>
+                                        <span id="selectedPlanPrice">$0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between text-success" id="discountRow" style="display: none;">
+                                        <span>{% trans "Discount" %}</span>
+                                        <span id="discountAmount">-$0.00</span>
+                                    </div>
+                                    <hr>
+                                    <div class="d-flex justify-content-between fw-bold">
+                                        <span>{% trans "Total" %}</span>
+                                        <span id="totalAmount">$0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-arrow-right-circle"></i> {% trans "Continue to Payment" %}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const planRadios = document.querySelectorAll('input[name="plan"]');
+    const cycleRadios = document.querySelectorAll('input[name="billing_cycle"]');
+    const couponInput = document.getElementById('id_coupon_code');
+    const validateCouponBtn = document.getElementById('validateCoupon');
+    
+    let selectedPlan = null;
+    let selectedCycle = 'MONTHLY';
+    let appliedDiscount = 0;
+    
+    // Plan data (would be populated from backend)
+    const planData = {
+        {% for plan in plans %}
+            '{{ plan.id }}': {
+                name: '{{ plan.name }}',
+                monthly: {{ plan.price_monthly }},
+                quarterly: {{ plan.price_quarterly }},
+                yearly: {{ plan.price_yearly }}
+            }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
+    
+    function updateOrderSummary() {
+        if (!selectedPlan) return;
+        
+        const plan = planData[selectedPlan];
+        const price = plan[selectedCycle.toLowerCase()] || plan.monthly;
+        const finalAmount = price - appliedDiscount;
+        
+        document.getElementById('selectedPlanName').textContent = `${plan.name} (${selectedCycle})`;
+        document.getElementById('selectedPlanPrice').textContent = `$${price.toFixed(2)}`;
+        document.getElementById('totalAmount').textContent = `$${finalAmount.toFixed(2)}`;
+        
+        if (appliedDiscount > 0) {
+            document.getElementById('discountRow').style.display = 'flex';
+            document.getElementById('discountAmount').textContent = `-$${appliedDiscount.toFixed(2)}`;
+        } else {
+            document.getElementById('discountRow').style.display = 'none';
+        }
+    }
+    
+    // Plan selection
+    planRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                selectedPlan = this.value;
+                updateOrderSummary();
+            }
+        });
+    });
+    
+    // Billing cycle selection
+    cycleRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                selectedCycle = this.value;
+                updateOrderSummary();
+            }
+        });
+    });
+    
+    // Coupon validation
+    validateCouponBtn.addEventListener('click', function() {
+        const code = couponInput.value.trim();
+        if (!code || !selectedPlan) return;
+        
+        const plan = planData[selectedPlan];
+        const amount = plan[selectedCycle.toLowerCase()] || plan.monthly;
+        
+        fetch('{% url "billing:validate_coupon" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: `code=${encodeURIComponent(code)}&amount=${amount}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            const feedback = document.getElementById('couponFeedback');
+            
+            if (data.valid) {
+                appliedDiscount = data.discount_amount;
+                feedback.innerHTML = `
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i>
+                        <strong>${data.coupon_name}</strong> applied! 
+                        You save $${data.discount_amount.toFixed(2)}
+                    </div>
+                `;
+                updateOrderSummary();
+            } else {
+                appliedDiscount = 0;
+                feedback.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-x-circle"></i>
+                        ${data.error}
+                    </div>
+                `;
+                updateOrderSummary();
+            }
+        })
+        .catch(error => {
+            console.error('Error validating coupon:', error);
+        });
+    });
+    
+    // Initialize with first plan if available
+    if (planRadios.length > 0) {
+        planRadios[0].checked = true;
+        selectedPlan = planRadios[0].value;
+        updateOrderSummary();
+    }
+});
+</script>
+{% endblock %}
