@@ -5,7 +5,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 from decimal import Decimal
-from .utils import UsageMeter
+from .models import UsageMeter # Corrected import path
 
 User = get_user_model()
 
@@ -212,7 +212,7 @@ class UsageReportForm(forms.Form):
         self.fields['date_to'].initial = today
         
         # Dynamically define usage_types field to avoid circular import issues
-        from .models import UsageMeter
+        # The import of UsageMeter is now at the top of the file, so it's available here.
         self.fields['usage_types'] = forms.MultipleChoiceField(
             choices=UsageMeter.USAGE_TYPES,
             widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
