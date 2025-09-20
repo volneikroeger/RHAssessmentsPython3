@@ -148,13 +148,13 @@
                             </li>
                             
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'assessments:list' %}">
+                                <a class="nav-link disabled" href="#">
                                     <i class="bi bi-clipboard-check"></i> Assessments
                                 </a>
                             </li>
                             
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'pdi:list' %}">
+                                <a class="nav-link disabled" href="#">
                                     <i class="bi bi-graph-up"></i> PDI Plans
                                 </a>
                             </li>
@@ -162,26 +162,26 @@
                         
                         {% if current_tenant.is_recruiter %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'recruiting:candidates' %}">
+                                <a class="nav-link disabled" href="#">
                                     <i class="bi bi-person-badge"></i> Candidates
                                 </a>
                             </li>
                             
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'recruiting:jobs' %}">
+                                <a class="nav-link disabled" href="#">
                                     <i class="bi bi-briefcase"></i> Jobs
                                 </a>
                             </li>
                             
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'recruiting:clients' %}">
+                                <a class="nav-link disabled" href="#">
                                     <i class="bi bi-building"></i> Clients
                                 </a>
                             </li>
                         {% endif %}
                         
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'reports:dashboard' %}">
+                            <a class="nav-link disabled" href="#">
                                 <i class="bi bi-bar-chart"></i> Reports
                             </a>
                         </li>
@@ -206,7 +206,7 @@
                         <!-- Billing (if enabled) -->
                         {% if enable_billing and current_tenant %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'billing:subscription' %}">
+                                <a class="nav-link disabled" href="#">
                                     <i class="bi bi-credit-card"></i> Billing
                                 </a>
                             </li>
@@ -254,7 +254,7 @@
                         <ul class="nav flex-column">
                             {% if current_tenant.is_company %}
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" href="{% url 'assessments:send_invite' %}">
+                                    <a class="nav-link text-dark disabled" href="#">
                                         <i class="bi bi-plus-circle"></i> Send Assessment
                                     </a>
                                 </li>
@@ -267,12 +267,12 @@
                             
                             {% if current_tenant.is_recruiter %}
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" href="{% url 'recruiting:create_candidate' %}">
+                                    <a class="nav-link text-dark disabled" href="#">
                                         <i class="bi bi-person-plus"></i> Add Candidate
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" href="{% url 'recruiting:create_job' %}">
+                                    <a class="nav-link text-dark disabled" href="#">
                                         <i class="bi bi-briefcase-fill"></i> Create Job
                                     </a>
                                 </li>
