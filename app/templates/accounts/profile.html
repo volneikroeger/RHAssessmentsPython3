@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Profile" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "My Profile" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'accounts:edit_profile' %}" class="btn btn-primary">
+            <i class="bi bi-pencil"></i> {% trans "Edit Profile" %}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Personal Information" %}</h5>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>{% trans "Name:" %}</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ user.full_name|default:user.email }}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>{% trans "Email:" %}</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ user.email }}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>{% trans "Preferred Language:" %}</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ user.get_preferred_language_display|default:"English" }}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>{% trans "Timezone:" %}</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ user.timezone|default:"UTC" }}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>{% trans "Member Since:" %}</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ user.date_joined|date:"F d, Y" }}
+                    </div>
+                </div>
+                
+                {% if user.profile %}
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>{% trans "Job Title:" %}</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ user.profile.job_title|default:"—" }}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>{% trans "Department:" %}</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ user.profile.department|default:"—" }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Organizations" %}</h5>
+                
+                {% for membership in user.memberships.all %}
+                    {% if membership.is_active %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <div>
+                            <strong>{{ membership.organization.name }}</strong>
+                            <br>
+                            <small class="text-muted">{{ membership.get_role_display }}</small>
+                            {% if membership.is_primary %}
+                                <span class="badge bg-primary ms-2">{% trans "Primary" %}</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <a href="{% url 'organizations:detail' membership.organization.pk %}" class="btn btn-sm btn-outline-primary">
+                                {% trans "View" %}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% empty %}
+                    <p class="text-muted">{% trans "You are not a member of any organizations yet." %}</p>
+                    <a href="{% url 'organizations:list' %}" class="btn btn-primary">
+                        {% trans "Join Organization" %}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Account Actions" %}</h5>
+                
+                <div class="d-grid gap-2">
+                    <a href="{% url 'accounts:edit_profile' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-person-gear"></i> {% trans "Edit Profile" %}
+                    </a>
+                    
+                    <a href="{% url 'accounts:change_password' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-key"></i> {% trans "Change Password" %}
+                    </a>
+                    
+                    <a href="{% url 'accounts:settings' %}" class="btn btn-outline-info">
+                        <i class="bi bi-gear"></i> {% trans "Account Settings" %}
+                    </a>
+                    
+                    <hr>
+                    
+                    <a href="{% url 'audit:my_data' %}" class="btn btn-outline-warning">
+                        <i class="bi bi-shield-check"></i> {% trans "Privacy & Data" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Account Statistics" %}</h5>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-primary">{{ user.memberships.filter.is_active.count }}</h4>
+                            <small class="text-muted">{% trans "Organizations" %}</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">0</h4>
+                        <small class="text-muted">{% trans "Assessments" %}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

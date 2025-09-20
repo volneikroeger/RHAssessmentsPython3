@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Account Settings" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Account Settings" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Profile" %}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Notification Preferences" %}</h5>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications" 
+                                   {% if user.profile.email_notifications %}checked{% endif %}>
+                            <label class="form-check-label" for="email_notifications">
+                                {% trans "Email Notifications" %}
+                            </label>
+                            <div class="form-text">
+                                {% trans "Receive email notifications for assessments, PDI updates, and important announcements." %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sms_notifications" name="sms_notifications" 
+                                   {% if user.profile.sms_notifications %}checked{% endif %}>
+                            <label class="form-check-label" for="sms_notifications">
+                                {% trans "SMS Notifications" %}
+                            </label>
+                            <div class="form-text">
+                                {% trans "Receive SMS notifications for urgent updates (requires phone number)." %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>{% trans "Privacy Settings" %}</h6>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="data_processing_consent" name="data_processing_consent" 
+                                   {% if user.profile.data_processing_consent %}checked{% endif %}>
+                            <label class="form-check-label" for="data_processing_consent">
+                                {% trans "Data Processing Consent" %}
+                            </label>
+                            <div class="form-text">
+                                {% trans "I consent to the processing of my personal data for assessment and development purposes." %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="marketing_consent" name="marketing_consent" 
+                                   {% if user.profile.marketing_consent %}checked{% endif %}>
+                            <label class="form-check-label" for="marketing_consent">
+                                {% trans "Marketing Communications" %}
+                            </label>
+                            <div class="form-text">
+                                {% trans "I consent to receive marketing communications about new features and services." %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary me-md-2">
+                            {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> {% trans "Save Settings" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Account Information" %}</h5>
+                
+                <div class="mb-3">
+                    <strong>{% trans "Account Created:" %}</strong><br>
+                    <span class="text-muted">{{ user.date_joined|date:"F d, Y" }}</span>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>{% trans "Last Login:" %}</strong><br>
+                    <span class="text-muted">{{ user.last_login|date:"F d, Y g:i A"|default:"Never" }}</span>
+                </div>
+                
+                {% if user.profile.consent_date %}
+                <div class="mb-3">
+                    <strong>{% trans "Privacy Consent:" %}</strong><br>
+                    <span class="text-muted">{{ user.profile.consent_date|date:"F d, Y" }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title text-danger">{% trans "Danger Zone" %}</h5>
+                
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-danger" disabled>
+                        <i class="bi bi-exclamation-triangle"></i> {% trans "Delete Account" %}
+                    </button>
+                    <small class="text-muted">
+                        {% trans "Account deletion is not yet available. Contact your administrator for assistance." %}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

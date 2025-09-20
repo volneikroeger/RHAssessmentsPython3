@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Edit Profile" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Edit Profile" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Profile" %}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Personal Information" %}</h5>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="first_name" class="form-label">{% trans "First Name" %}</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" 
+                                   value="{{ user.first_name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="last_name" class="form-label">{% trans "Last Name" %}</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" 
+                                   value="{{ user.last_name }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">{% trans "Email Address" %}</label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               value="{{ user.email }}" required>
+                        <div class="form-text">{% trans "This is your login email address." %}</div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="preferred_language" class="form-label">{% trans "Preferred Language" %}</label>
+                            <select class="form-select" id="preferred_language" name="preferred_language">
+                                <option value="en" {% if user.preferred_language == 'en' %}selected{% endif %}>English</option>
+                                <option value="pt-br" {% if user.preferred_language == 'pt-br' %}selected{% endif %}>Português (Brasil)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="timezone" class="form-label">{% trans "Timezone" %}</label>
+                            <select class="form-select" id="timezone" name="timezone">
+                                <option value="UTC" {% if user.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                                <option value="America/New_York" {% if user.timezone == 'America/New_York' %}selected{% endif %}>Eastern Time</option>
+                                <option value="America/Chicago" {% if user.timezone == 'America/Chicago' %}selected{% endif %}>Central Time</option>
+                                <option value="America/Denver" {% if user.timezone == 'America/Denver' %}selected{% endif %}>Mountain Time</option>
+                                <option value="America/Los_Angeles" {% if user.timezone == 'America/Los_Angeles' %}selected{% endif %}>Pacific Time</option>
+                                <option value="America/Sao_Paulo" {% if user.timezone == 'America/Sao_Paulo' %}selected{% endif %}>São Paulo</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">{% trans "Phone Number" %}</label>
+                        <input type="tel" class="form-control" id="phone" name="phone" 
+                               value="{{ user.phone }}" placeholder="{% trans 'Optional' %}">
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>{% trans "Professional Information" %}</h6>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="job_title" class="form-label">{% trans "Job Title" %}</label>
+                            <input type="text" class="form-control" id="job_title" name="job_title" 
+                                   value="{{ user.profile.job_title|default:'' }}" placeholder="{% trans 'Optional' %}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="department" class="form-label">{% trans "Department" %}</label>
+                            <input type="text" class="form-control" id="department" name="department" 
+                                   value="{{ user.profile.department|default:'' }}" placeholder="{% trans 'Optional' %}">
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary me-md-2">
+                            {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> {% trans "Save Changes" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Profile Tips" %}</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="bi bi-info-circle text-info"></i>
+                        {% trans "Keep your profile information up to date for better assessment results." %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-shield-check text-success"></i>
+                        {% trans "Your personal information is encrypted and secure." %}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-globe text-primary"></i>
+                        {% trans "Language and timezone settings affect your user experience." %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
