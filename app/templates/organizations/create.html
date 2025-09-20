@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Create Organization" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{% trans "Create New Organization" %}</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'organizations:list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Organizations" %}
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Organization Details" %}</h5>
+                
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label for="id_name" class="form-label">{% trans "Organization Name" %} *</label>
+                            <input type="text" class="form-control" id="id_name" name="name" required>
+                            <div class="form-text">{% trans "The full name of your organization." %}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="id_kind" class="form-label">{% trans "Organization Type" %} *</label>
+                            <select class="form-select" id="id_kind" name="kind" required>
+                                <option value="">{% trans "Select type..." %}</option>
+                                <option value="COMPANY">{% trans "Company (HR + PDI)" %}</option>
+                                <option value="RECRUITER">{% trans "Recruiter (R&S)" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_email" class="form-label">{% trans "Contact Email" %}</label>
+                            <input type="email" class="form-control" id="id_email" name="email">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_phone" class="form-label">{% trans "Phone Number" %}</label>
+                            <input type="tel" class="form-control" id="id_phone" name="phone">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_website" class="form-label">{% trans "Website" %}</label>
+                        <input type="url" class="form-control" id="id_website" name="website" placeholder="https://">
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="id_locale_default" class="form-label">{% trans "Default Language" %}</label>
+                            <select class="form-select" id="id_locale_default" name="locale_default">
+                                <option value="en">English</option>
+                                <option value="pt-br">Português (Brasil)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="id_timezone" class="form-label">{% trans "Timezone" %}</label>
+                            <select class="form-select" id="id_timezone" name="timezone">
+                                <option value="UTC">UTC</option>
+                                <option value="America/New_York">Eastern Time</option>
+                                <option value="America/Chicago">Central Time</option>
+                                <option value="America/Denver">Mountain Time</option>
+                                <option value="America/Los_Angeles">Pacific Time</option>
+                                <option value="America/Sao_Paulo">São Paulo</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>{% trans "Address Information" %}</h6>
+                    
+                    <div class="mb-3">
+                        <label for="id_address_line1" class="form-label">{% trans "Address Line 1" %}</label>
+                        <input type="text" class="form-control" id="id_address_line1" name="address_line1">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_address_line2" class="form-label">{% trans "Address Line 2" %}</label>
+                        <input type="text" class="form-control" id="id_address_line2" name="address_line2">
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="id_city" class="form-label">{% trans "City" %}</label>
+                            <input type="text" class="form-control" id="id_city" name="city">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="id_state" class="form-label">{% trans "State/Province" %}</label>
+                            <input type="text" class="form-control" id="id_state" name="state">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="id_postal_code" class="form-label">{% trans "Postal Code" %}</label>
+                            <input type="text" class="form-control" id="id_postal_code" name="postal_code">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_country" class="form-label">{% trans "Country" %}</label>
+                        <input type="text" class="form-control" id="id_country" name="country">
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>{% trans "Branding" %}</h6>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label for="id_logo" class="form-label">{% trans "Logo" %}</label>
+                            <input type="file" class="form-control" id="id_logo" name="logo" accept="image/*">
+                            <div class="form-text">{% trans "Upload your organization's logo (optional)." %}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="id_primary_color" class="form-label">{% trans "Primary Color" %}</label>
+                            <input type="color" class="form-control form-control-color" id="id_primary_color" name="primary_color" value="#007bff">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="id_allow_self_registration" name="allow_self_registration">
+                            <label class="form-check-label" for="id_allow_self_registration">
+                                {% trans "Allow self-registration" %}
+                            </label>
+                            <div class="form-text">
+                                {% trans "Allow users to join this organization without an invitation." %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'organizations:list' %}" class="btn btn-outline-secondary me-md-2">
+                            {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> {% trans "Create Organization" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Organization Types" %}</h5>
+                
+                <div class="mb-3">
+                    <h6 class="text-primary">
+                        <i class="bi bi-building"></i> {% trans "Company (HR + PDI)" %}
+                    </h6>
+                    <p class="small text-muted">
+                        {% trans "For organizations managing employees with HR assessments and Individual Development Plans (PDI)." %}
+                    </p>
+                    <ul class="small text-muted">
+                        <li>{% trans "Employee assessments" %}</li>
+                        <li>{% trans "PDI generation and tracking" %}</li>
+                        <li>{% trans "Manager approval workflows" %}</li>
+                        <li>{% trans "Team development reports" %}</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-success">
+                        <i class="bi bi-person-badge"></i> {% trans "Recruiter (R&S)" %}
+                    </h6>
+                    <p class="small text-muted">
+                        {% trans "For recruitment agencies and talent acquisition teams." %}
+                    </p>
+                    <ul class="small text-muted">
+                        <li>{% trans "Candidate assessments" %}</li>
+                        <li>{% trans "Job matching algorithms" %}</li>
+                        <li>{% trans "Client reporting" %}</li>
+                        <li>{% trans "Candidate ranking systems" %}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Getting Started" %}</h5>
+                <ol class="small">
+                    <li>{% trans "Choose your organization type" %}</li>
+                    <li>{% trans "Fill in basic information" %}</li>
+                    <li>{% trans "Invite team members" %}</li>
+                    <li>{% trans "Configure departments (for companies)" %}</li>
+                    <li>{% trans "Start sending assessments" %}</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

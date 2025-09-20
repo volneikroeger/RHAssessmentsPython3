@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ organization.name }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <div class="d-flex align-items-center">
+        {% if organization.logo %}
+            <img src="{{ organization.logo.url }}" alt="{{ organization.name }}" 
+                 class="rounded me-3" style="width: 64px; height: 64px; object-fit: cover;">
+        {% else %}
+            <div class="bg-primary text-white rounded d-flex align-items-center justify-content-center me-3" 
+                 style="width: 64px; height: 64px; font-size: 24px;">
+                <i class="bi bi-building"></i>
+            </div>
+        {% endif %}
+        <div>
+            <h1 class="h2 mb-0">{{ organization.name }}</h1>
+            <p class="text-muted mb-0">{{ organization.get_kind_display }}</p>
+        </div>
+    </div>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'organizations:list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> {% trans "Back to Organizations" %}
+            </a>
+        </div>
+        {% if user.is_admin_of_organization %}
+            <div class="btn-group">
+                <a href="{% url 'organizations:update' organization.pk %}" class="btn btn-primary">
+                    <i class="bi bi-pencil"></i> {% trans "Edit Organization" %}
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Organization Information" %}</h5>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>{% trans "Name:" %}</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ organization.name }}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>{% trans "Type:" %}</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        <span class="badge bg-primary">{{ organization.get_kind_display }}</span>
+                    </div>
+                </div>
+                
+                {% if organization.email %}
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>{% trans "Email:" %}</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        <a href="mailto:{{ organization.email }}">{{ organization.email }}</a>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if organization.website %}
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>{% trans "Website:" %}</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        <a href="{{ organization.website }}" target="_blank">{{ organization.website }}</a>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>{% trans "Language:" %}</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ organization.get_locale_default_display }}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>{% trans "Timezone:" %}</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ organization.timezone }}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-3">
+                        <strong>{% trans "Created:" %}</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        {{ organization.created_at|date:"F d, Y" }}
+                        {% if organization.created_by %}
+                            {% trans "by" %} {{ organization.created_by.full_name }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Quick Actions" %}</h5>
+                <div class="row">
+                    {% if organization.is_company %}
+                        <div class="col-md-6">
+                            <a href="{% url 'organizations:employees' organization.pk %}" class="btn btn-outline-primary w-100 mb-2">
+                                <i class="bi bi-people"></i> {% trans "View Employees" %}
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{% url 'organizations:departments' organization.pk %}" class="btn btn-outline-info w-100 mb-2">
+                                <i class="bi bi-diagram-3"></i> {% trans "View Departments" %}
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{% url 'organizations:create_employee' organization.pk %}" class="btn btn-outline-success w-100 mb-2">
+                                <i class="bi bi-person-plus"></i> {% trans "Add Employee" %}
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="#" class="btn btn-outline-warning w-100 mb-2 disabled">
+                                <i class="bi bi-clipboard-check"></i> {% trans "Send Assessment" %}
+                            </a>
+                        </div>
+                    {% endif %}
+                    
+                    {% if organization.is_recruiter %}
+                        <div class="col-md-6">
+                            <a href="#" class="btn btn-outline-primary w-100 mb-2 disabled">
+                                <i class="bi bi-person-badge"></i> {% trans "View Candidates" %}
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="#" class="btn btn-outline-info w-100 mb-2 disabled">
+                                <i class="bi bi-briefcase"></i> {% trans "View Jobs" %}
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="#" class="btn btn-outline-success w-100 mb-2 disabled">
+                                <i class="bi bi-person-plus"></i> {% trans "Add Candidate" %}
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="#" class="btn btn-outline-warning w-100 mb-2 disabled">
+                                <i class="bi bi-briefcase-fill"></i> {% trans "Create Job" %}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Statistics" %}</h5>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-primary">{{ organization.get_active_members.count }}</h4>
+                            <small class="text-muted">{% trans "Members" %}</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">0</h4>
+                        <small class="text-muted">{% trans "Assessments" %}</small>
+                    </div>
+                </div>
+                
+                {% if organization.is_company %}
+                    <hr>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h4 class="text-info">{{ organization.departments.filter.is_active.count }}</h4>
+                                <small class="text-muted">{% trans "Departments" %}</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-warning">{{ organization.employees.filter.is_active.count }}</h4>
+                            <small class="text-muted">{% trans "Employees" %}</small>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">{% trans "Recent Activity" %}</h5>
+                <p class="text-muted">{% trans "No recent activity to display." %}</p>
+            </div>
+        </div>
+        
+        {% if user.is_admin_of_organization %}
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "Admin Actions" %}</h5>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'organizations:members' organization.pk %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-people"></i> {% trans "Manage Members" %}
+                        </a>
+                        <a href="{% url 'organizations:invite' organization.pk %}" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-person-plus"></i> {% trans "Invite Users" %}
+                        </a>
+                        <a href="{% url 'organizations:settings' organization.pk %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-gear"></i> {% trans "Settings" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
