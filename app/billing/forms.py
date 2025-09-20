@@ -211,8 +211,7 @@ class UsageReportForm(forms.Form):
         self.fields['date_from'].initial = thirty_days_ago
         self.fields['date_to'].initial = today
         
-        # Dynamically define usage_types field to avoid circular import issues
-        # The import of UsageMeter is now at the top of the file, so it's available here.
+        # Dynamically define usage_types field to avoid premature model loading
         self.fields['usage_types'] = forms.MultipleChoiceField(
             choices=UsageMeter.USAGE_TYPES,
             widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
