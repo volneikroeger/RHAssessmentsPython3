@@ -120,6 +120,13 @@ class ClientCreateView(LoginRequiredMixin, RecruiterOnlyMixin, SuccessMessageMix
     def form_valid(self, form):
         form.instance.organization = self.get_organization()
         form.instance.created_by = self.request.user
+        
+        # Ensure organization is set before validation
+        if not form.instance.organization:
+            from django.contrib import messages
+            messages.error(self.request, _('No organization context available. Please try again.'))
+            return self.form_invalid(form)
+        
         return super().form_valid(form)
 
 
