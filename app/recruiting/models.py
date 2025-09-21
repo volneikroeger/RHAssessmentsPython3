@@ -339,7 +339,8 @@ class Candidate(BaseTenantModel):
     
     @property
     def assessment_completed(self):
-        return self.assessment_instances.filter(status='COMPLETED').exists()
+        # Corrected: Filter by the status of the related AssessmentInstance
+        return self.assessment_instances.filter(assessment_instance__status='COMPLETED').exists()
 
 
 class JobApplication(BaseTenantModel):
