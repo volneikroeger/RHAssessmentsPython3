@@ -17,6 +17,7 @@ from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, FormView
 )
 from django.views import View
+from django.db.models.fields.related_descriptors import ReverseManyToOneDescriptor
 
 from organizations.mixins import OrganizationPermissionMixin, RecruiterOnlyMixin
 from .models import (
@@ -199,10 +200,16 @@ class JobDetailView(LoginRequiredMixin, RecruiterOnlyMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Get applications for this job
-        context['applications'] = self.object.applications.select_related(
-            'candidate', 'recruiter'
-        ).order_by('-applied_date')
+        # Get applications for this job - defensive check
+        try:
+            context['applications'] = self.object.applications.select_related(
+                'candidate', 'recruiter'
+            ).order_by('-applied_date')
+        except AttributeError:
+            # Fallback if applications attribute has issues
+            context['applications'] = JobApplication.objects.filter(
+                job=self.object
+            ).select_related('candidate', 'recruiter').order_by('-applied_date')
         
         # Application statistics
         applications = context['applications']
@@ -331,16 +338,55 @@ class CandidateDetailView(LoginRequiredMixin, RecruiterOnlyMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Get applications and assessments
-        context['applications'] = self.object.applications.select_related(
-            'job', 'job__client', 'recruiter'
-        ).order_by('-applied_date')
+        # Get applications - defensive check for the 'str' object error
+        try:
+            # Check if applications is a proper related manager
+            if hasattr(self.object.applications, 'select_related'):
+                context['applications'] = self.object.applications.select_related(
+                    'job', 'job__client', 'recruiter'
+                ).order_by('-applied_date')
+            else:
+                # Fallback: query directly from JobApplication model
+                context['applications'] = JobApplication.objects.filter(
+                    candidate=self.object
+                ).select_related('job', 'job__client', 'recruiter').order_by('-applied_date')
+        except (AttributeError, TypeError) as e:
+            # Log the error for debugging
+            print(f"WARNING: Error accessing applications for candidate {self.object.pk}: {e}")
+            print(f"Type of self.object.applications: {type(self.object.applications)}")
+            
+            # Fallback: query directly from JobApplication model
+            context['applications'] = JobApplication.objects.filter(
+                candidate=self.object
+            ).select_related('job', 'job__client', 'recruiter').order_by('-applied_date')
         
-        context['assessments'] = self.object.assessment_instances.select_related(
-            'assessment_instance__assessment'
-        ).order_by('-created_at')
+        # Get assessments - defensive check
+        try:
+            if hasattr(self.object.assessment_instances, 'select_related'):
+                context['assessments'] = self.object.assessment_instances.select_related(
+                    'assessment_instance__assessment'
+                ).order_by('-created_at')
+            else:
+                context['assessments'] = CandidateAssessment.objects.filter(
+                    candidate=self.object
+                ).select_related('assessment_instance__assessment').order_by('-created_at')
+        except (AttributeError, TypeError):
+            context['assessments'] = CandidateAssessment.objects.filter(
+                candidate=self.object
+            ).select_related('assessment_instance__assessment').order_by('-created_at')
         
-        context['notes'] = self.object.notes.select_related('author').order_by('-created_at')[:10]
+        # Get notes - defensive check
+        try:
+            if hasattr(self.object.candidate_notes, 'select_related'):
+                context['notes'] = self.object.candidate_notes.select_related('author').order_by('-created_at')[:10]
+            else:
+                context['notes'] = CandidateNote.objects.filter(
+                    candidate=self.object
+                ).select_related('author').order_by('-created_at')[:10]
+        except (AttributeError, TypeError):
+            context['notes'] = CandidateNote.objects.filter(
+                candidate=self.object
+            ).select_related('author').order_by('-created_at')[:10]
         
         return context
 
