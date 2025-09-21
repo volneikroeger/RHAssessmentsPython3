@@ -5,21 +5,25 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 from decimal import Decimal
-from django.apps import apps # Importar apps para acesso seguro ao modelo
-
-# Não importe UsageMeter diretamente aqui no topo,
-# pois isso causa o problema de carregamento antecipado.
-# from .models import UsageMeter
 
 User = get_user_model()
 
-# Função auxiliar para obter as choices dinamicamente
-# Esta função só será chamada quando o formulário for instanciado,
-# garantindo que o App Registry do Django já esteja carregado.
+
 def get_usage_meter_choices():
-    # Acessa o modelo de forma segura através do App Registry
-    UsageMeter = apps.get_model('billing', 'UsageMeter')
-    return UsageMeter.USAGE_TYPES
+    """Get usage meter choices dynamically to avoid import issues."""
+    try:
+        from django.apps import apps
+        UsageMeter = apps.get_model('billing', 'UsageMeter')
+        return UsageMeter.USAGE_TYPES
+    except:
+        # Fallback choices if model not available
+        return [
+            ('ASSESSMENTS', _('Assessments')),
+            ('TEAM_MEMBERS', _('Team Members')),
+            ('STORAGE', _('Storage')),
+            ('API_CALLS', _('API Calls')),
+            ('REPORTS', _('Reports')),
+        ]
 
 
 class PlanSelectionForm(forms.Form):
@@ -96,7 +100,6 @@ class BillingAddressForm(forms.ModelForm):
     """Form for billing address."""
     
     class Meta:
-        # Import model locally to avoid circular imports
         from .models import BillingAddress
         model = BillingAddress
         fields = [
@@ -120,7 +123,6 @@ class PaymentMethodForm(forms.ModelForm):
     """Form for payment method."""
     
     class Meta:
-        # Import model locally to avoid circular imports
         from .models import PaymentMethod
         model = PaymentMethod
         fields = ['method_type', 'is_default']
@@ -133,7 +135,6 @@ class SubscriptionUpdateForm(forms.ModelForm):
     """Form for updating subscription."""
     
     class Meta:
-        # Import model locally to avoid circular imports
         from .models import Subscription
         model = Subscription
         fields = ['plan', 'billing_cycle']
@@ -167,7 +168,6 @@ class CouponForm(forms.ModelForm):
     """Form for creating/editing coupons."""
     
     class Meta:
-        # Import model locally to avoid circular imports
         from .models import Coupon
         model = Coupon
         fields = [
@@ -212,14 +212,6 @@ class UsageReportForm(forms.Form):
         initial=True
     )
     
-    # Pass the callable to choices
-    usage_types = forms.MultipleChoiceField(
-        choices=get_usage_meter_choices, # <--- THIS IS THE KEY CHANGE
-        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
-        label=_('Usage Types'),
-        required=False
-    )
-    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
@@ -231,7 +223,13 @@ class UsageReportForm(forms.Form):
         self.fields['date_from'].initial = thirty_days_ago
         self.fields['date_to'].initial = today
         
-        # No need to set choices here anymore, as it's handled by the callable
+        # Create usage_types field dynamically to avoid import issues
+        self.fields['usage_types'] = forms.MultipleChoiceField(
+            choices=get_usage_meter_choices(),
+            widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+            label=_('Usage Types'),
+            required=False
+        )
 
 
 class BillingSearchForm(forms.Form):

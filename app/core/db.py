@@ -53,12 +53,12 @@ class BaseTenantModel(models.Model):
         """Validate that organization matches current tenant."""
         super().clean()
         tenant = get_current_tenant()
-        if tenant and self.organization_id != tenant.id:
+        if tenant and self.organization_id and self.organization_id != tenant.id:
             raise ValueError(f"Object organization {self.organization_id} doesn't match current tenant {tenant.id}")
     
     def save(self, *args, **kwargs):
         # Auto-set organization if not provided
-        if not self.organization_id:
+        if not self.organization_id and not hasattr(self, '_skip_tenant_assignment'):
             tenant = get_current_tenant()
             if tenant:
                 self.organization = tenant
