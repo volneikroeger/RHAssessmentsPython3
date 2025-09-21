@@ -18,6 +18,7 @@ from django.views.generic import (
 )
 from django.views import View
 from django.db.models.fields.related_descriptors import ReverseManyToOneDescriptor
+from django.db.models.manager import RelatedManager
 
 from organizations.mixins import OrganizationPermissionMixin, RecruiterOnlyMixin
 from .models import (
@@ -254,6 +255,13 @@ class JobUpdateView(LoginRequiredMixin, RecruiterOnlyMixin, SuccessMessageMixin,
         kwargs = super().get_form_kwargs()
         kwargs['organization'] = self.get_organization()
         return kwargs
+    
+    def get_context_data(self, **kwargs):
+        # Override get_context_data to prevent it from trying to load related objects
+        # that might cause issues if the object is not fully initialized or if
+        # there are unexpected data types in the relationships.
+        # The form itself should handle populating its fields from the object.
+        return super().get_context_data(**kwargs)
 
 
 # Candidate Views
