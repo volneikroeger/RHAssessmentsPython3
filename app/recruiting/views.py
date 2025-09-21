@@ -18,7 +18,6 @@ from django.views.generic import (
 )
 from django.views import View
 from django.db.models.fields.related_descriptors import ReverseManyToOneDescriptor
-from django.db.models.manager import RelatedManager
 
 from organizations.mixins import OrganizationPermissionMixin, RecruiterOnlyMixin
 from .models import (
@@ -346,55 +345,36 @@ class CandidateDetailView(LoginRequiredMixin, RecruiterOnlyMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Get applications - defensive check for the 'str' object error
-        try:
-            # Check if applications is a proper related manager
-            if hasattr(self.object.applications, 'select_related'):
-                context['applications'] = self.object.applications.select_related(
-                    'job', 'job__client', 'recruiter'
-                ).order_by('-applied_date')
-            else:
-                # Fallback: query directly from JobApplication model
-                context['applications'] = JobApplication.objects.filter(
-                    candidate=self.object
-                ).select_related('job', 'job__client', 'recruiter').order_by('-applied_date')
-        except (AttributeError, TypeError) as e:
-            # Log the error for debugging
-            print(f"WARNING: Error accessing applications for candidate {self.object.pk}: {e}")
-            print(f"Type of self.object.applications: {type(self.object.applications)}")
-            
-            # Fallback: query directly from JobApplication model
-            context['applications'] = JobApplication.objects.filter(
-                candidate=self.object
-            ).select_related('job', 'job__client', 'recruiter').order_by('-applied_date')
+        # Defensive check for applications attribute
+        if hasattr(self.object.applications, 'select_related'):
+            context['applications'] = self.object.applications.select_related(
+                'job', 'job__client', 'recruiter'
+            ).order_by('-applied_date')
+        else:
+            # Fallback if applications doesn't have select_related method
+            # This indicates a deeper issue, but allows the page to load.
+            print(f"WARNING: self.object.applications is of type {type(self.object.applications)}, expected a manager.")
+            context['applications'] = JobApplication.objects.filter(candidate=self.object).select_related(
+                'job', 'job__client', 'recruiter'
+            ).order_by('-applied_date')
         
-        # Get assessments - defensive check
-        try:
-            if hasattr(self.object.assessment_instances, 'select_related'):
-                context['assessments'] = self.object.assessment_instances.select_related(
-                    'assessment_instance__assessment'
-                ).order_by('-created_at')
-            else:
-                context['assessments'] = CandidateAssessment.objects.filter(
-                    candidate=self.object
-                ).select_related('assessment_instance__assessment').order_by('-created_at')
-        except (AttributeError, TypeError):
-            context['assessments'] = CandidateAssessment.objects.filter(
-                candidate=self.object
-            ).select_related('assessment_instance__assessment').order_by('-created_at')
+        # Defensive check for assessment_instances attribute
+        if hasattr(self.object.assessment_instances, 'select_related'):
+            context['assessments'] = self.object.assessment_instances.select_related(
+                'assessment_instance__assessment'
+            ).order_by('-created_at')
+        else:
+            print(f"WARNING: self.object.assessment_instances is of type {type(self.object.assessment_instances)}, expected a manager.")
+            context['assessments'] = CandidateAssessment.objects.filter(candidate=self.object).select_related(
+                'assessment_instance__assessment'
+            ).order_by('-created_at')
         
-        # Get notes - defensive check
-        try:
-            if hasattr(self.object.candidate_notes, 'select_related'):
-                context['notes'] = self.object.candidate_notes.select_related('author').order_by('-created_at')[:10]
-            else:
-                context['notes'] = CandidateNote.objects.filter(
-                    candidate=self.object
-                ).select_related('author').order_by('-created_at')[:10]
-        except (AttributeError, TypeError):
-            context['notes'] = CandidateNote.objects.filter(
-                candidate=self.object
-            ).select_related('author').order_by('-created_at')[:10]
+        # Defensive check for candidate_notes attribute
+        if hasattr(self.object.candidate_notes, 'select_related'):
+            context['notes'] = self.object.candidate_notes.select_related('author').order_by('-created_at')[:10]
+        else:
+            print(f"WARNING: self.object.candidate_notes is of type {type(self.object.candidate_notes)}, expected a manager.")
+            context['notes'] = CandidateNote.objects.filter(candidate=self.object).select_related('author').order_by('-created_at')[:10]
         
         return context
 
