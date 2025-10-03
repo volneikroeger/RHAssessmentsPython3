@@ -464,12 +464,18 @@ class QuestionCreateView(LoginRequiredMixin, OrganizationPermissionMixin, Succes
     success_message = _('Question created successfully!')
     required_role = 'HR'
 
+    def get_organization(self):
+        """Get organization from the assessment."""
+        if not hasattr(self, '_organization'):
+            self.assessment = get_object_or_404(
+                AssessmentDefinition,
+                pk=self.kwargs['assessment_pk']
+            )
+            self._organization = self.assessment.organization
+        return self._organization
+
     def dispatch(self, request, *args, **kwargs):
-        self.assessment = get_object_or_404(
-            AssessmentDefinition,
-            pk=self.kwargs['assessment_pk'],
-            organization=self.get_organization()
-        )
+        self.get_organization()
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -493,12 +499,18 @@ class QuestionUpdateView(LoginRequiredMixin, OrganizationPermissionMixin, Succes
     success_message = _('Question updated successfully!')
     required_role = 'HR'
 
+    def get_organization(self):
+        """Get organization from the assessment."""
+        if not hasattr(self, '_organization'):
+            self.assessment = get_object_or_404(
+                AssessmentDefinition,
+                pk=self.kwargs['assessment_pk']
+            )
+            self._organization = self.assessment.organization
+        return self._organization
+
     def dispatch(self, request, *args, **kwargs):
-        self.assessment = get_object_or_404(
-            AssessmentDefinition,
-            pk=self.kwargs['assessment_pk'],
-            organization=self.get_organization()
-        )
+        self.get_organization()
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
@@ -520,12 +532,18 @@ class QuestionDeleteView(LoginRequiredMixin, OrganizationPermissionMixin, Succes
     success_message = _('Question deleted successfully!')
     required_role = 'HR'
 
+    def get_organization(self):
+        """Get organization from the assessment."""
+        if not hasattr(self, '_organization'):
+            self.assessment = get_object_or_404(
+                AssessmentDefinition,
+                pk=self.kwargs['assessment_pk']
+            )
+            self._organization = self.assessment.organization
+        return self._organization
+
     def dispatch(self, request, *args, **kwargs):
-        self.assessment = get_object_or_404(
-            AssessmentDefinition,
-            pk=self.kwargs['assessment_pk'],
-            organization=self.get_organization()
-        )
+        self.get_organization()
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
@@ -547,12 +565,18 @@ class QuestionListView(LoginRequiredMixin, OrganizationPermissionMixin, ListView
     context_object_name = 'questions'
     required_role = 'HR'
 
+    def get_organization(self):
+        """Get organization from the assessment."""
+        if not hasattr(self, '_organization'):
+            self.assessment = get_object_or_404(
+                AssessmentDefinition,
+                pk=self.kwargs['assessment_pk']
+            )
+            self._organization = self.assessment.organization
+        return self._organization
+
     def dispatch(self, request, *args, **kwargs):
-        self.assessment = get_object_or_404(
-            AssessmentDefinition,
-            pk=self.kwargs['assessment_pk'],
-            organization=self.get_organization()
-        )
+        self.get_organization()
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
@@ -570,12 +594,18 @@ class QuestionOptionManageView(LoginRequiredMixin, OrganizationPermissionMixin, 
     """Manage options for a question."""
     required_role = 'HR'
 
+    def get_organization(self):
+        """Get organization from the assessment."""
+        if not hasattr(self, '_organization'):
+            self.assessment = get_object_or_404(
+                AssessmentDefinition,
+                pk=self.kwargs['assessment_pk']
+            )
+            self._organization = self.assessment.organization
+        return self._organization
+
     def dispatch(self, request, *args, **kwargs):
-        self.assessment = get_object_or_404(
-            AssessmentDefinition,
-            pk=self.kwargs['assessment_pk'],
-            organization=self.get_organization()
-        )
+        self.get_organization()
         self.question = get_object_or_404(
             Question,
             pk=self.kwargs['question_pk'],
@@ -621,11 +651,20 @@ class QuestionOptionDeleteView(LoginRequiredMixin, OrganizationPermissionMixin, 
     """Delete a question option."""
     required_role = 'HR'
 
+    def get_organization(self):
+        """Get organization from the assessment."""
+        if not hasattr(self, '_organization'):
+            assessment = get_object_or_404(
+                AssessmentDefinition,
+                pk=self.kwargs['assessment_pk']
+            )
+            self._organization = assessment.organization
+        return self._organization
+
     def post(self, request, *args, **kwargs):
         assessment = get_object_or_404(
             AssessmentDefinition,
-            pk=self.kwargs['assessment_pk'],
-            organization=self.get_organization()
+            pk=self.kwargs['assessment_pk']
         )
         question = get_object_or_404(
             Question,
