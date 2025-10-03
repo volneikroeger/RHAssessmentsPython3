@@ -2,10 +2,12 @@
 Admin configuration for assessments app.
 """
 from django.contrib import admin
+from django.utils.html import format_html
 from .models import (
     AssessmentDefinition, Question, QuestionOption, 
     AssessmentInstance, Response, ScoreProfile, AssessmentReport
 )
+from .scoring import get_detailed_score_interpretation
 
 
 class QuestionOptionInline(admin.TabularInline):
@@ -172,6 +174,25 @@ class ScoreProfileAdmin(admin.ModelAdmin):
     def instance_assessment(self, obj):
         return obj.instance.assessment.name
     instance_assessment.short_description = 'Assessment'
+    
+    def view_detailed_interpretation(self, request, queryset):
+        """View detailed score interpretation for selected profiles."""
+        if queryset.count() != 1:
+            self.message_user(request, "Please select exactly one score profile.")
+            return
+        
+        score_profile = queryset.first()
+        interpretation = get_detailed_score_interpretation(score_profile)
+        
+        # This would redirect to a detailed interpretation view
+        # For now, just show a message
+        self.message_user(
+            request, 
+            f"Detailed interpretation available for {score_profile.instance.user.full_name}"
+        )
+    
+    view_detailed_interpretation.short_description = 'View detailed interpretation'
+    actions = [view_detailed_interpretation]
 
 
 @admin.register(AssessmentReport)

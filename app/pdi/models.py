@@ -409,8 +409,23 @@ class PDITemplate(BaseTenantModel):
             if 'max_score' in rule and score > rule['max_score']:
                 return False
             if 'percentile_below' in rule:
-                # Would need percentile calculation
-                pass
+                # Get percentile from score profile
+                try:
+                    score_profile = self.source_assessment.score_profile
+                    percentile = score_profile.percentile_scores.get(dimension, 50)
+                    if percentile >= rule['percentile_below']:
+                        return False
+                except:
+                    # If no percentile data available, skip this rule
+                    pass
+            if 'percentile_above' in rule:
+                try:
+                    score_profile = self.source_assessment.score_profile
+                    percentile = score_profile.percentile_scores.get(dimension, 50)
+                    if percentile <= rule['percentile_above']:
+                        return False
+                except:
+                    pass
         
         return True
 

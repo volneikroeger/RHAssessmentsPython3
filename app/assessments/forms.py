@@ -4,6 +4,7 @@ Forms for assessments app.
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from .models import AssessmentDefinition, Question, QuestionOption, Response
+from .scoring import AssessmentValidator
 
 
 class AssessmentDefinitionForm(forms.ModelForm):
@@ -90,6 +91,29 @@ class AssessmentResponseForm(forms.Form):
                     required=question.required
                 )
                 
+            elif question.question_type == 'FORCED_CHOICE':
+                # Forced choice between pairs of options
+                choices = [(opt.id, opt.text) for opt in question.options.all().order_by('order')]
+                
+                self.fields[field_name] = forms.ChoiceField(
+                    label=question.text,
+                    choices=choices,
+                    widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
+                    required=question.required
+                )
+                
+            elif question.question_type == 'RANKING':
+                # Ranking of multiple options
+                options = question.options.all().order_by('order')
+                choices = [(opt.id, opt.text) for opt in options]
+                
+                self.fields[field_name] = forms.MultipleChoiceField(
+                    label=question.text,
+                    choices=choices,
+                    widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input ranking-field'}),
+                    required=question.required
+                )
+                
             elif question.question_type == 'TEXT':
                 self.fields[field_name] = forms.CharField(
                     label=question.text,
@@ -99,6 +123,47 @@ class AssessmentResponseForm(forms.Form):
                 
             # Add question metadata as field attributes
             self.fields[field_name].question = question
+    
+    def clean(self):
+        """Validate assessment responses for quality."""
+        cleaned_data = super().clean()
+        
+        # Create temporary response data for validation
+        numeric_responses = []
+        for field_name, value in cleaned_data.items():
+            if field_name.startswith('question_') and value:
+                question = self.fields[field_name].question
+                
+                # Convert to numeric for validation
+                if question.question_type in ['LIKERT_5', 'LIKERT_7']:
+                    numeric_responses.append(int(value))
+                elif question.question_type == 'MULTIPLE_CHOICE':
+                    try:
+                        option = question.options.get(id=value)
+                        numeric_responses.append(option.value)
+                    except:
+                        pass
+        
+        # Basic response pattern validation
+        if len(numeric_responses) > 5:  # Only validate if enough responses
+            # Check for straight-lining
+            if len(set(numeric_responses)) == 1:
+                raise forms.ValidationError(
+                    _("Please vary your responses. All identical answers may not provide accurate results.")
+                )
+            
+            # Check for extreme response bias
+            if numeric_responses:
+                min_val, max_val = min(numeric_responses), max(numeric_responses)
+                extreme_responses = sum(1 for r in numeric_responses if r in [min_val, max_val])
+                extreme_rate = extreme_responses / len(numeric_responses)
+                
+                if extreme_rate > 0.9:
+                    self.add_error(None, forms.ValidationError(
+                        _("Please consider using the full range of response options for more accurate results.")
+                    ))
+        
+        return cleaned_data
 
 
 class AssessmentInviteForm(forms.Form):

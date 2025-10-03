@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.conf import settings
+from .scoring import calculate_assessment_scores
 import logging
 
 logger = logging.getLogger(__name__)
@@ -104,24 +105,53 @@ def process_assessment_completion(assessment_instance_id):
     logger.info(f"Processing assessment completion: {assessment_instance_id}")
     
     try:
-        # TODO: Implement assessment processing logic
-        # For now, just log the processing
+        from .models import AssessmentInstance
         
-        # Example logic (to be implemented):
-        # 1. Calculate assessment scores
-        # 2. Generate personality profile
-        # 3. Create assessment report
-        # 4. Notify relevant parties
-        # 5. Trigger PDI generation if applicable
+        # Get assessment instance
+        instance = AssessmentInstance.objects.get(id=assessment_instance_id)
+        
+        # Calculate comprehensive scores
+        score_profile = calculate_assessment_scores(assessment_instance_id)
+        
+        # Generate assessment report
+        generate_assessment_report.delay(assessment_instance_id, 'html')
+        
+        # Trigger PDI generation for company assessments if applicable
+        if instance.organization.is_company:
+            from pdi.tasks import generate_pdi_from_assessment
+            generate_pdi_from_assessment.delay(assessment_instance_id)
+        
+        # Send completion notification
+        from emails.utils import send_email
+        send_email(
+            template_type='ASSESSMENT_COMPLETED',
+            to_email=instance.user.email,
+            context_data={
+                'user': {
+                    'first_name': instance.user.first_name,
+                    'full_name': instance.user.full_name,
+                },
+                'assessment': {
+                    'name': instance.assessment.name,
+                    'framework': instance.assessment.get_framework_display(),
+                    'result_url': f"/assessments/result/{instance.token}/",
+                },
+                'score_profile': {
+                    'profile_type': score_profile.profile_type,
+                    'strengths_count': len(score_profile.strengths),
+                    'recommendations_count': len(score_profile.recommendations),
+                }
+            },
+            organization=instance.organization,
+            related_object=instance
+        )
         
         logger.info(f"Assessment processing completed: {assessment_instance_id}")
-        
-        # Trigger PDI generation for company assessments
-        # from pdi.tasks import generate_pdi_from_assessment
-        # generate_pdi_from_assessment.delay(assessment_instance_id)
-        
         return {"status": "success", "assessment_id": assessment_instance_id}
         
+    except AssessmentInstance.DoesNotExist:
+        logger.error(f"Assessment instance not found: {assessment_instance_id}")
+        return {"status": "error", "message": "Assessment instance not found"}
     except Exception as e:
         logger.error(f"Error processing assessment completion: {str(e)}")
         return {"status": "error", "message": str(e)}

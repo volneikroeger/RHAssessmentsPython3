@@ -18,6 +18,7 @@ from django.views.generic import (
 from django.views import View
 
 from organizations.mixins import OrganizationPermissionMixin
+from .scoring import calculate_assessment_scores, AssessmentValidator
 from .models import (
     AssessmentDefinition, AssessmentInstance, Question, Response, ScoreProfile
 )
@@ -293,7 +294,13 @@ class AssessmentTakeView(View):
                     instance.save()
                     
                     # Calculate scores (basic implementation)
-                    self._calculate_scores(instance)
+                    try:
+                        calculate_assessment_scores(str(instance.id))
+                    except Exception as e:
+                        # Log error but don't fail the completion
+                        import logging
+                        logger = logging.getLogger(__name__)
+                        logger.error(f"Error calculating scores for assessment {instance.id}: {str(e)}")
                     
                     messages.success(request, _('Assessment completed successfully!'))
                     return redirect('assessments:result', token=token)
@@ -312,54 +319,6 @@ class AssessmentTakeView(View):
         }
         
         return render(request, 'assessments/assessment_take.html', context)
-    
-    def _calculate_scores(self, instance):
-        """Calculate basic scores for completed assessment."""
-        responses = instance.responses.select_related('question')
-        
-        # Group responses by dimension
-        dimension_scores = {}
-        dimension_counts = {}
-        
-        for response in responses:
-            dimension = response.question.dimension or 'general'
-            score = response.numeric_value or 0
-            
-            # Apply reverse scoring if needed
-            if response.question.reverse_scored:
-                if response.question.question_type == 'LIKERT_5':
-                    score = 6 - score
-                elif response.question.question_type == 'LIKERT_7':
-                    score = 8 - score
-            
-            # Apply weight
-            score *= response.question.weight
-            
-            if dimension not in dimension_scores:
-                dimension_scores[dimension] = 0
-                dimension_counts[dimension] = 0
-            
-            dimension_scores[dimension] += score
-            dimension_counts[dimension] += 1
-        
-        # Calculate averages
-        for dimension in dimension_scores:
-            if dimension_counts[dimension] > 0:
-                dimension_scores[dimension] /= dimension_counts[dimension]
-        
-        # Create or update score profile
-        score_profile, created = ScoreProfile.objects.get_or_create(
-            instance=instance,
-            defaults={'organization': instance.organization}
-        )
-        
-        score_profile.dimension_scores = dimension_scores
-        # Simple percentile calculation (would be more sophisticated in real implementation)
-        score_profile.percentile_scores = {
-            dim: min(100, max(0, (score / 7.0) * 100)) 
-            for dim, score in dimension_scores.items()
-        }
-        score_profile.save()
 
 
 class AssessmentResultView(View):
