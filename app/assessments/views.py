@@ -77,17 +77,24 @@ class AssessmentDefinitionDetailView(LoginRequiredMixin, OrganizationPermissionM
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        
+
         # Get user's assessment instances for this assessment
         user_instances = AssessmentInstance.objects.filter(
             assessment=self.object,
             user=self.request.user
         ).order_by('-invited_at')
-        
+
+        # Calculate statistics for all instances
+        all_instances = self.object.instances.all()
+        context['completed_count'] = all_instances.filter(status='COMPLETED').count()
+        context['in_progress_count'] = all_instances.filter(status='IN_PROGRESS').count()
+        context['invited_count'] = all_instances.filter(status='INVITED').count()
+        context['started_count'] = all_instances.filter(status='STARTED').count()
+
         context['user_instances'] = user_instances
         context['can_take_assessment'] = self.object.is_active
         context['questions'] = self.object.questions.filter(is_active=True).order_by('order')
-        
+
         return context
 
 

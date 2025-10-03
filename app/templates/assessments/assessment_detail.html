@@ -203,12 +203,12 @@
                 <div class="row text-center">
                     <div class="col-6">
                         <div class="border-end">
-                            <h4 class="text-info">{{ assessment.instances.filter.status='COMPLETED'.count }}</h4>
+                            <h4 class="text-info">{{ completed_count }}</h4>
                             <small class="text-muted">{% trans "Completed" %}</small>
                         </div>
                     </div>
                     <div class="col-6">
-                        <h4 class="text-warning">{{ assessment.instances.filter.status='IN_PROGRESS'.count }}</h4>
+                        <h4 class="text-warning">{{ in_progress_count }}</h4>
                         <small class="text-muted">{% trans "In Progress" %}</small>
                     </div>
                 </div>
