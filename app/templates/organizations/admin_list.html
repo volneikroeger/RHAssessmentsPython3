@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Organization Management - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1><i class="bi bi-building"></i> Organization Management</h1>
+        <p class="text-muted">Manage all organizations across the platform</p>
+    </div>
+    <div>
+        <a href="{% url 'dashboard:system_config' %}" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-arrow-left"></i> Back to System Config
+        </a>
+        <a href="{% url 'organizations:create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Create Organization
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-building"></i> Total Organizations</h5>
+                <h2 class="mb-0">{{ total_orgs }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-check-circle"></i> Active Organizations</h5>
+                <h2 class="mb-0">{{ active_orgs }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label for="search" class="form-label">Search Organizations</label>
+                <input type="text" class="form-control" id="search" name="search"
+                       placeholder="Search by name or email..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-3">
+                <label for="kind" class="form-label">Type</label>
+                <select class="form-select" id="kind" name="kind">
+                    <option value="">All Types</option>
+                    {% for value, label in kind_choices %}
+                        <option value="{{ value }}" {% if selected_kind == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">All Statuses</option>
+                    <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if selected_status == 'inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-search"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="mb-3">
+    <h5>Organizations ({{ page_obj.paginator.count }})</h5>
+</div>
+
+{% if organizations %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Organization</th>
+                    <th>Type</th>
+                    <th>Members</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for org in organizations %}
+                    <tr>
+                        <td>
+                            <strong>{{ org.name }}</strong>
+                            {% if org.subdomain %}
+                                <br>
+                                <small class="text-muted">
+                                    <i class="bi bi-link"></i> {{ org.subdomain }}
+                                </small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge {% if org.kind == 'COMPANY' %}bg-primary{% else %}bg-info{% endif %}">
+                                {{ org.get_kind_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <small class="text-muted">
+                                <i class="bi bi-people"></i> {{ org.member_count }}
+                            </small>
+                        </td>
+                        <td>
+                            {% if org.email %}
+                                <a href="mailto:{{ org.email }}">{{ org.email }}</a>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if org.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ org.created_at|date:"M d, Y" }}</small>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'organizations:detail' org.pk %}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'organizations:settings' org.pk %}" class="btn btn-outline-primary">
+                                    <i class="bi bi-gear"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_kind %}&kind={{ selected_kind }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}">First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_kind %}&kind={{ selected_kind }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}">Previous</a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_kind %}&kind={{ selected_kind }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_kind %}&kind={{ selected_kind }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}">Last</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+{% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> No organizations found matching the selected filters.
+    </div>
+{% endif %}
+
+{% endblock %}

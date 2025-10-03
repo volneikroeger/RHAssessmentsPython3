@@ -193,6 +193,30 @@
                                 <i class="bi bi-envelope"></i> Emails
                             </a>
                         </li>
+
+                        {% if user_is_admin %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-gear-fill"></i> Admin
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><h6 class="dropdown-header">Assessment Management</h6></li>
+                                    <li><a class="dropdown-item" href="{% url 'assessments:template_library' %}"><i class="bi bi-folder"></i> Template Library</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'assessments:create' %}"><i class="bi bi-plus-circle"></i> Create Template</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'assessments:question_bank' %}"><i class="bi bi-card-list"></i> Question Bank</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">System Configuration</h6></li>
+                                    <li><a class="dropdown-item" href="{% url 'dashboard:system_config' %}"><i class="bi bi-sliders"></i> System Settings</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'organizations:admin_list' %}"><i class="bi bi-building"></i> Organizations</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'accounts:user_management' %}"><i class="bi bi-people"></i> User Management</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    {% if user.is_superuser %}
+                                        <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-database"></i> Django Admin</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'dashboard:super_admin' %}"><i class="bi bi-shield-lock"></i> Super Admin Panel</a></li>
+                                    {% endif %}
+                                </ul>
+                            </li>
+                        {% endif %}
                     {% endif %}
                 </ul>
                 

@@ -13,11 +13,15 @@ urlpatterns = [
     path('<uuid:pk>/', views.AssessmentDefinitionDetailView.as_view(), name='detail'),
     path('<uuid:pk>/edit/', views.AssessmentDefinitionUpdateView.as_view(), name='update'),
     path('<uuid:pk>/invite/', views.AssessmentInviteView.as_view(), name='invite'),
-    
+
     # Assessment taking
     path('take/<str:token>/', views.AssessmentTakeView.as_view(), name='take'),
     path('result/<str:token>/', views.AssessmentResultView.as_view(), name='result'),
-    
+
     # Assessment instances management
     path('instances/', views.AssessmentInstanceListView.as_view(), name='instances'),
+
+    # Admin views
+    path('admin/templates/', views.TemplateLibraryView.as_view(), name='template_library'),
+    path('admin/questions/', views.QuestionBankView.as_view(), name='question_bank'),
 ]

@@ -87,6 +87,7 @@ TEMPLATES = [
                 'core.context_processors.tenant_context',
                 'core.context_processors.locale_context',
                 'core.context_processors.feature_flags',
+                'core.context_processors.user_permissions',
             ],
         },
     },

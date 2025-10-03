@@ -360,8 +360,89 @@ class AssessmentInstanceListView(LoginRequiredMixin, OrganizationPermissionMixin
     context_object_name = 'instances'
     paginate_by = 50
     required_role = 'HR'
-    
+
     def get_queryset(self):
         return AssessmentInstance.objects.filter(
             organization=self.get_organization()
         ).select_related('assessment', 'user', 'invited_by').order_by('-invited_at')
+
+
+class TemplateLibraryView(LoginRequiredMixin, OrganizationPermissionMixin, ListView):
+    """Admin view for browsing all assessment templates."""
+    model = AssessmentDefinition
+    template_name = 'assessments/template_library.html'
+    context_object_name = 'templates'
+    paginate_by = 20
+    required_role = 'HR'
+
+    def get_queryset(self):
+        queryset = AssessmentDefinition.objects.filter(
+            organization=self.get_organization()
+        ).select_related('created_by').prefetch_related('questions')
+
+        framework = self.request.GET.get('framework')
+        status = self.request.GET.get('status')
+        search = self.request.GET.get('search')
+
+        if framework:
+            queryset = queryset.filter(framework=framework)
+        if status:
+            queryset = queryset.filter(status=status)
+        if search:
+            from django.db.models import Q
+            queryset = queryset.filter(
+                Q(name__icontains=search) |
+                Q(description__icontains=search)
+            )
+
+        return queryset.order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['framework_choices'] = AssessmentDefinition.FRAMEWORK_CHOICES
+        context['status_choices'] = AssessmentDefinition.STATUS_CHOICES
+        context['selected_framework'] = self.request.GET.get('framework', '')
+        context['selected_status'] = self.request.GET.get('status', '')
+        context['search_query'] = self.request.GET.get('search', '')
+        return context
+
+
+class QuestionBankView(LoginRequiredMixin, OrganizationPermissionMixin, ListView):
+    """Admin view for managing questions across all assessments."""
+    model = Question
+    template_name = 'assessments/question_bank.html'
+    context_object_name = 'questions'
+    paginate_by = 50
+    required_role = 'HR'
+
+    def get_queryset(self):
+        queryset = Question.objects.filter(
+            assessment__organization=self.get_organization()
+        ).select_related('assessment').prefetch_related('options')
+
+        assessment_id = self.request.GET.get('assessment')
+        question_type = self.request.GET.get('question_type')
+        dimension = self.request.GET.get('dimension')
+        search = self.request.GET.get('search')
+
+        if assessment_id:
+            queryset = queryset.filter(assessment_id=assessment_id)
+        if question_type:
+            queryset = queryset.filter(question_type=question_type)
+        if dimension:
+            queryset = queryset.filter(dimension__icontains=dimension)
+        if search:
+            queryset = queryset.filter(text__icontains=search)
+
+        return queryset.order_by('assessment__name', 'order')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['assessments'] = AssessmentDefinition.objects.filter(
+            organization=self.get_organization()
+        ).values('id', 'name')
+        context['question_types'] = Question.QUESTION_TYPES
+        context['selected_assessment'] = self.request.GET.get('assessment', '')
+        context['selected_type'] = self.request.GET.get('question_type', '')
+        context['search_query'] = self.request.GET.get('search', '')
+        return context

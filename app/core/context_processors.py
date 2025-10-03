@@ -29,3 +29,20 @@ def feature_flags(request: HttpRequest) -> Dict[str, Any]:
         'enable_billing': getattr(settings, 'ENABLE_BILLING', True),
         'enable_analytics': getattr(settings, 'ENABLE_ANALYTICS', True),
     }
+
+
+def user_permissions(request: HttpRequest) -> Dict[str, Any]:
+    """Add user permission flags to template context."""
+    is_admin = False
+    if request.user.is_authenticated:
+        is_admin = (
+            request.user.is_superuser or
+            request.user.memberships.filter(
+                is_active=True,
+                role__in=['SUPER_ADMIN', 'ORG_ADMIN', 'HR']
+            ).exists()
+        )
+
+    return {
+        'user_is_admin': is_admin,
+    }

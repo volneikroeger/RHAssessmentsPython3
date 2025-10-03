@@ -411,6 +411,60 @@ class OrganizationSettingsView(LoginRequiredMixin, OrganizationPermissionMixin, 
     template_name = 'organizations/settings.html'
     success_message = _('Settings updated successfully!')
     required_role = 'ORG_ADMIN'
-    
+
     def get_success_url(self):
         return reverse_lazy('organizations:settings', kwargs={'pk': self.object.pk})
+
+
+class OrganizationAdminListView(LoginRequiredMixin, ListView):
+    """Admin view for managing all organizations."""
+    model = Organization
+    template_name = 'organizations/admin_list.html'
+    context_object_name = 'organizations'
+    paginate_by = 50
+
+    def dispatch(self, request, *args, **kwargs):
+        from django.core.exceptions import PermissionDenied
+        if not (request.user.is_superuser or
+                request.user.memberships.filter(
+                    is_active=True,
+                    role='SUPER_ADMIN'
+                ).exists()):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        from django.db.models import Count, Q
+        queryset = Organization.objects.annotate(
+            member_count=Count('memberships', filter=Q(memberships__is_active=True))
+        )
+
+        search = self.request.GET.get('search')
+        kind = self.request.GET.get('kind')
+        status = self.request.GET.get('status')
+
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) |
+                Q(email__icontains=search)
+            )
+
+        if kind:
+            queryset = queryset.filter(kind=kind)
+
+        if status == 'active':
+            queryset = queryset.filter(is_active=True)
+        elif status == 'inactive':
+            queryset = queryset.filter(is_active=False)
+
+        return queryset.order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total_orgs'] = Organization.objects.count()
+        context['active_orgs'] = Organization.objects.filter(is_active=True).count()
+        context['kind_choices'] = Organization.KIND_CHOICES
+        context['search_query'] = self.request.GET.get('search', '')
+        context['selected_kind'] = self.request.GET.get('kind', '')
+        context['selected_status'] = self.request.GET.get('status', '')
+        return context

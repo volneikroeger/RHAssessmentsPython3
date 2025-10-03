@@ -36,4 +36,7 @@ urlpatterns = [
     
     # Settings
     path('<uuid:pk>/settings/', views.OrganizationSettingsView.as_view(), name='settings'),
+
+    # Admin views
+    path('admin/all/', views.OrganizationAdminListView.as_view(), name='admin_list'),
 ]

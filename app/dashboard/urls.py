@@ -9,4 +9,5 @@ app_name = 'dashboard'
 urlpatterns = [
     path('', views.home, name='home'),
     path('super-admin/', views.super_admin, name='super_admin'),
+    path('system-config/', views.system_config, name='system_config'),
 ]
