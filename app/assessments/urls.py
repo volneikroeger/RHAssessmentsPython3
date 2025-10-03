@@ -24,4 +24,12 @@ urlpatterns = [
     # Admin views
     path('admin/templates/', views.TemplateLibraryView.as_view(), name='template_library'),
     path('admin/questions/', views.QuestionBankView.as_view(), name='question_bank'),
+
+    # Question management
+    path('<uuid:assessment_pk>/questions/', views.QuestionListView.as_view(), name='question_list'),
+    path('<uuid:assessment_pk>/questions/create/', views.QuestionCreateView.as_view(), name='question_create'),
+    path('<uuid:assessment_pk>/questions/<uuid:pk>/edit/', views.QuestionUpdateView.as_view(), name='question_update'),
+    path('<uuid:assessment_pk>/questions/<uuid:pk>/delete/', views.QuestionDeleteView.as_view(), name='question_delete'),
+    path('<uuid:assessment_pk>/questions/<uuid:question_pk>/options/', views.QuestionOptionManageView.as_view(), name='question_options'),
+    path('<uuid:assessment_pk>/questions/<uuid:question_pk>/options/<uuid:pk>/delete/', views.QuestionOptionDeleteView.as_view(), name='question_option_delete'),
 ]

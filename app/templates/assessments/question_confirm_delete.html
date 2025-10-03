@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete Question" %} - {{ assessment.name }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <div>
+        <h1 class="h2">{% trans "Delete Question" %}</h1>
+        <p class="text-muted">{{ assessment.name }}</p>
+    </div>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'assessments:question_list' assessment.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> {% trans "Back to Questions" %}
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-danger">
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <i class="bi bi-exclamation-triangle text-danger" style="font-size: 4rem;"></i>
+                </div>
+
+                <h5 class="card-title text-center">{% trans "Are you sure you want to delete this question?" %}</h5>
+
+                <div class="alert alert-warning mt-4">
+                    <h6><i class="bi bi-info-circle"></i> {% trans "Question to be deleted:" %}</h6>
+                    <p class="mb-0"><strong>{{ object.text }}</strong></p>
+                    <hr>
+                    <ul class="mb-0">
+                        <li>{% trans "Type:" %} {{ object.get_question_type_display }}</li>
+                        {% if object.dimension %}
+                            <li>{% trans "Dimension:" %} {{ object.dimension }}</li>
+                        {% endif %}
+                        <li>{% trans "Order:" %} {{ object.order }}</li>
+                        {% if object.options.exists %}
+                            <li>{% trans "Response Options:" %} {{ object.options.count }}</li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <div class="alert alert-danger">
+                    <h6><i class="bi bi-exclamation-triangle"></i> {% trans "Warning" %}</h6>
+                    <p class="mb-0">
+                        {% trans "This action cannot be undone. All associated response options and any responses from completed assessments will be deleted." %}
+                    </p>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{% url 'assessments:question_list' assessment.pk %}" class="btn btn-outline-secondary me-md-2">
+                            <i class="bi bi-x-lg"></i> {% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> {% trans "Delete Question" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

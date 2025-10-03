@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Questions" %} - {{ assessment.name }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <div>
+        <h1 class="h2">{% trans "Questions" %}</h1>
+        <p class="text-muted">{{ assessment.name }}</p>
+    </div>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'assessments:detail' assessment.pk %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> {% trans "Back to Assessment" %}
+            </a>
+        </div>
+        <a href="{% url 'assessments:question_create' assessment.pk %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> {% trans "Add Question" %}
+        </a>
+    </div>
+</div>
+
+{% if questions %}
+    <div class="card">
+        <div class="card-body">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                {% trans "Total questions:" %} <strong>{{ questions.count }}</strong>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Order" %}</th>
+                            <th>{% trans "Question" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Dimension" %}</th>
+                            <th>{% trans "Options" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for question in questions %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-secondary">{{ question.order }}</span>
+                                </td>
+                                <td>
+                                    <div class="text-truncate" style="max-width: 400px;">
+                                        {{ question.text }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ question.get_question_type_display }}</small>
+                                </td>
+                                <td>
+                                    {% if question.dimension %}
+                                        <span class="badge bg-info">{{ question.dimension }}</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if question.options.exists %}
+                                        <span class="badge bg-success">{{ question.options.count }} options</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if question.is_active %}
+                                        <span class="badge bg-success">{% trans "Active" %}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        {% if question.question_type in 'MULTIPLE_CHOICE,FORCED_CHOICE,RANKING' %}
+                                            <a href="{% url 'assessments:question_options' assessment.pk question.pk %}"
+                                               class="btn btn-outline-info" title="{% trans 'Manage Options' %}">
+                                                <i class="bi bi-list-ul"></i>
+                                            </a>
+                                        {% endif %}
+                                        <a href="{% url 'assessments:question_update' assessment.pk question.pk %}"
+                                           class="btn btn-outline-primary" title="{% trans 'Edit' %}">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="{% url 'assessments:question_delete' assessment.pk question.pk %}"
+                                           class="btn btn-outline-danger" title="{% trans 'Delete' %}">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-question-circle" style="font-size: 4rem; color: #ddd;"></i>
+            <h4 class="mt-3">{% trans "No Questions Yet" %}</h4>
+            <p class="text-muted">
+                {% trans "Start building your assessment by adding questions." %}
+            </p>
+            <a href="{% url 'assessments:question_create' assessment.pk %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> {% trans "Add Your First Question" %}
+            </a>
+        </div>
+    </div>
+{% endif %}
+
+<div class="card mt-3">
+    <div class="card-body">
+        <h5 class="card-title">{% trans "Question Types Guide" %}</h5>
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="text-primary">{% trans "5-Point Likert Scale" %}</h6>
+                <p class="small text-muted">
+                    {% trans "Standard 1-5 rating scale (e.g., Strongly Disagree to Strongly Agree)" %}
+                </p>
+            </div>
+            <div class="col-md-6">
+                <h6 class="text-primary">{% trans "7-Point Likert Scale" %}</h6>
+                <p class="small text-muted">
+                    {% trans "Extended 1-7 rating scale for more granular responses" %}
+                </p>
+            </div>
+            <div class="col-md-6">
+                <h6 class="text-success">{% trans "Multiple Choice" %}</h6>
+                <p class="small text-muted">
+                    {% trans "Select one option from a list of custom choices" %}
+                </p>
+            </div>
+            <div class="col-md-6">
+                <h6 class="text-warning">{% trans "Forced Choice" %}</h6>
+                <p class="small text-muted">
+                    {% trans "Choose between paired options to reveal preferences" %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

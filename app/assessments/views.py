@@ -13,18 +13,19 @@ from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.generic import (
-    ListView, DetailView, CreateView, UpdateView, FormView
+    ListView, DetailView, CreateView, UpdateView, FormView, DeleteView
 )
 from django.views import View
+from django.shortcuts import render
 
 from organizations.mixins import OrganizationPermissionMixin
 from .scoring import calculate_assessment_scores, AssessmentValidator
 from .models import (
-    AssessmentDefinition, AssessmentInstance, Question, Response, ScoreProfile
+    AssessmentDefinition, AssessmentInstance, Question, QuestionOption, Response, ScoreProfile
 )
 from .forms import (
     AssessmentDefinitionForm, AssessmentResponseForm, AssessmentInviteForm,
-    AssessmentSearchForm
+    AssessmentSearchForm, QuestionForm, QuestionOptionForm
 )
 
 
@@ -453,3 +454,193 @@ class QuestionBankView(LoginRequiredMixin, OrganizationPermissionMixin, ListView
         context['selected_type'] = self.request.GET.get('question_type', '')
         context['search_query'] = self.request.GET.get('search', '')
         return context
+
+
+class QuestionCreateView(LoginRequiredMixin, OrganizationPermissionMixin, SuccessMessageMixin, CreateView):
+    """Create a new question for an assessment."""
+    model = Question
+    form_class = QuestionForm
+    template_name = 'assessments/question_form.html'
+    success_message = _('Question created successfully!')
+    required_role = 'HR'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.assessment = get_object_or_404(
+            AssessmentDefinition,
+            pk=self.kwargs['assessment_pk'],
+            organization=self.get_organization()
+        )
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['assessment'] = self.assessment
+        return context
+
+    def form_valid(self, form):
+        form.instance.assessment = self.assessment
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('assessments:question_list', kwargs={'assessment_pk': self.assessment.pk})
+
+
+class QuestionUpdateView(LoginRequiredMixin, OrganizationPermissionMixin, SuccessMessageMixin, UpdateView):
+    """Update an existing question."""
+    model = Question
+    form_class = QuestionForm
+    template_name = 'assessments/question_form.html'
+    success_message = _('Question updated successfully!')
+    required_role = 'HR'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.assessment = get_object_or_404(
+            AssessmentDefinition,
+            pk=self.kwargs['assessment_pk'],
+            organization=self.get_organization()
+        )
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return Question.objects.filter(assessment=self.assessment)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['assessment'] = self.assessment
+        return context
+
+    def get_success_url(self):
+        return reverse('assessments:question_list', kwargs={'assessment_pk': self.assessment.pk})
+
+
+class QuestionDeleteView(LoginRequiredMixin, OrganizationPermissionMixin, SuccessMessageMixin, DeleteView):
+    """Delete a question."""
+    model = Question
+    template_name = 'assessments/question_confirm_delete.html'
+    success_message = _('Question deleted successfully!')
+    required_role = 'HR'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.assessment = get_object_or_404(
+            AssessmentDefinition,
+            pk=self.kwargs['assessment_pk'],
+            organization=self.get_organization()
+        )
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return Question.objects.filter(assessment=self.assessment)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['assessment'] = self.assessment
+        return context
+
+    def get_success_url(self):
+        return reverse('assessments:question_list', kwargs={'assessment_pk': self.assessment.pk})
+
+
+class QuestionListView(LoginRequiredMixin, OrganizationPermissionMixin, ListView):
+    """List all questions for a specific assessment."""
+    model = Question
+    template_name = 'assessments/question_list.html'
+    context_object_name = 'questions'
+    required_role = 'HR'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.assessment = get_object_or_404(
+            AssessmentDefinition,
+            pk=self.kwargs['assessment_pk'],
+            organization=self.get_organization()
+        )
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return Question.objects.filter(
+            assessment=self.assessment
+        ).prefetch_related('options').order_by('order')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['assessment'] = self.assessment
+        return context
+
+
+class QuestionOptionManageView(LoginRequiredMixin, OrganizationPermissionMixin, View):
+    """Manage options for a question."""
+    required_role = 'HR'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.assessment = get_object_or_404(
+            AssessmentDefinition,
+            pk=self.kwargs['assessment_pk'],
+            organization=self.get_organization()
+        )
+        self.question = get_object_or_404(
+            Question,
+            pk=self.kwargs['question_pk'],
+            assessment=self.assessment
+        )
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        options = self.question.options.all().order_by('order')
+        form = QuestionOptionForm()
+
+        context = {
+            'assessment': self.assessment,
+            'question': self.question,
+            'options': options,
+            'form': form,
+        }
+        return render(request, 'assessments/question_options.html', context)
+
+    def post(self, request, *args, **kwargs):
+        form = QuestionOptionForm(request.POST)
+
+        if form.is_valid():
+            option = form.save(commit=False)
+            option.question = self.question
+            option.save()
+            messages.success(request, _('Option added successfully!'))
+            return redirect('assessments:question_options',
+                          assessment_pk=self.assessment.pk,
+                          question_pk=self.question.pk)
+
+        options = self.question.options.all().order_by('order')
+        context = {
+            'assessment': self.assessment,
+            'question': self.question,
+            'options': options,
+            'form': form,
+        }
+        return render(request, 'assessments/question_options.html', context)
+
+
+class QuestionOptionDeleteView(LoginRequiredMixin, OrganizationPermissionMixin, View):
+    """Delete a question option."""
+    required_role = 'HR'
+
+    def post(self, request, *args, **kwargs):
+        assessment = get_object_or_404(
+            AssessmentDefinition,
+            pk=self.kwargs['assessment_pk'],
+            organization=self.get_organization()
+        )
+        question = get_object_or_404(
+            Question,
+            pk=self.kwargs['question_pk'],
+            assessment=assessment
+        )
+        option = get_object_or_404(
+            QuestionOption,
+            pk=self.kwargs['pk'],
+            question=question
+        )
+
+        option.delete()
+        messages.success(request, _('Option deleted successfully!'))
+
+        return redirect('assessments:question_options',
+                      assessment_pk=assessment.pk,
+                      question_pk=question.pk)
