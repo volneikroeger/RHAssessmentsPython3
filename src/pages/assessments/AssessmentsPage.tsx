@@ -1,32 +1,22 @@
 import React from 'react';
+import { AssessmentList } from '../../components/assessments/AssessmentList';
+import { AssessmentBuilder } from '../../components/assessments/AssessmentBuilder';
 import { ClipboardCheck } from 'lucide-react';
 import { PlaceholderPage } from '../../components/common/PlaceholderPage';
 
 export function AssessmentsListPage() {
   return (
-    <PlaceholderPage
-      title="Psychological Assessments"
-      description="Create, manage, and send psychological assessments to evaluate candidate fit and employee development."
-      icon={ClipboardCheck}
-      features={[
-        'Pre-built Assessment Templates',
-        'Custom Question Banks',
-        'Automated Scoring',
-        'Detailed Reports',
-        'Multi-language Support',
-        'Compliance & Privacy',
-      ]}
-    />
+    <div className="p-6">
+      <AssessmentList />
+    </div>
   );
 }
 
 export function TemplateLibraryPage() {
   return (
-    <PlaceholderPage
-      title="Assessment Template Library"
-      description="Browse and manage your library of assessment templates. Create new templates or customize existing ones."
-      icon={ClipboardCheck}
-    />
+    <div className="p-6">
+      <AssessmentBuilder />
+    </div>
   );
 }
 
