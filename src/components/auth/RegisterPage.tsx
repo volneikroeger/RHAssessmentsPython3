@@ -44,7 +44,7 @@ export function RegisterPage() {
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-2">Account Created!</h2>
             <p className="text-slate-600 mb-6">
-              Your account has been successfully created. You can now sign in.
+              Your account has been successfully created. You can now sign in with your credentials.
             </p>
             <a
               href="/login"

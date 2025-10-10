@@ -23,7 +23,14 @@ export function LoginPage() {
       await signIn(email, password);
       navigate(ROUTES.DASHBOARD);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign in');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to sign in';
+      if (errorMessage.toLowerCase().includes('email') && errorMessage.toLowerCase().includes('confirm')) {
+        setError('Please check your email and confirm your account before signing in.');
+      } else if (errorMessage.toLowerCase().includes('invalid')) {
+        setError('Invalid email or password. Please check your credentials and try again.');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
