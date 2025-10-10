@@ -13,6 +13,7 @@ import { JobsPage } from './pages/recruiting/JobsPage';
 
 import { OrganizationsPage, EmployeesPage, DepartmentsPage, OrganizationSettingsPage } from './pages/organizations/OrganizationsPage';
 import { AssessmentsListPage, TemplateLibraryPage, QuestionBankPage } from './pages/assessments/AssessmentsPage';
+import { TakeAssessmentPage } from './pages/assessments/TakeAssessmentPage';
 import { PDIDashboardPage, PDIPlansListPage } from './pages/pdi/PDIPage';
 import { BillingDashboardPage, InvoicesPage } from './pages/billing/BillingPage';
 import { ReportsDashboardPage, AnalyticsPage } from './pages/reports/ReportsPage';
@@ -47,6 +48,7 @@ function AppRoutes() {
     <Routes>
       <Route path={ROUTES.LOGIN} element={<LoginPage />} />
       <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
+      <Route path={ROUTES.ASSESSMENTS.TAKE} element={<TakeAssessmentPage />} />
 
       <Route
         path={ROUTES.DASHBOARD}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ClipboardCheck, Eye, Send, Plus, Edit, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { AssessmentDefinition, AssessmentInstance } from '../../types/assessments';
+import { InviteModal } from './InviteModal';
 
 export function AssessmentList() {
   const [definitions, setDefinitions] = useState<AssessmentDefinition[]>([]);
@@ -96,6 +97,8 @@ export function AssessmentList() {
 }
 
 function DefinitionsList({ definitions, onRefresh }: { definitions: AssessmentDefinition[]; onRefresh: () => void }) {
+  const [inviteModalAssessment, setInviteModalAssessment] = useState<AssessmentDefinition | null>(null);
+
   if (definitions.length === 0) {
     return (
       <div className="text-center py-12">
@@ -107,8 +110,19 @@ function DefinitionsList({ definitions, onRefresh }: { definitions: AssessmentDe
   }
 
   return (
-    <div className="space-y-4">
-      {definitions.map((def) => (
+    <>
+      {inviteModalAssessment && (
+        <InviteModal
+          assessment={inviteModalAssessment}
+          onClose={() => setInviteModalAssessment(null)}
+          onSuccess={() => {
+            onRefresh();
+          }}
+        />
+      )}
+
+      <div className="space-y-4">
+        {definitions.map((def) => (
         <div key={def.id} className="border rounded-lg p-4 hover:border-blue-300 transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex-1">
@@ -138,7 +152,11 @@ function DefinitionsList({ definitions, onRefresh }: { definitions: AssessmentDe
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button className="p-2 text-gray-600 hover:text-blue-600" title="Send Assessment">
+              <button
+                onClick={() => setInviteModalAssessment(def)}
+                className="p-2 text-gray-600 hover:text-blue-600"
+                title="Send Assessment"
+              >
                 <Send className="h-4 w-4" />
               </button>
               <button className="p-2 text-gray-600 hover:text-blue-600" title="Edit">
@@ -151,7 +169,8 @@ function DefinitionsList({ definitions, onRefresh }: { definitions: AssessmentDe
           </div>
         </div>
       ))}
-    </div>
+      </div>
+    </>
   );
 }
 
