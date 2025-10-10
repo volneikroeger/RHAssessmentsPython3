@@ -3,6 +3,7 @@ URL configuration for assessments app.
 """
 from django.urls import path
 from . import views
+from . import disc_api
 
 app_name = 'assessments'
 
@@ -32,4 +33,8 @@ urlpatterns = [
     path('<uuid:assessment_pk>/questions/<uuid:pk>/delete/', views.QuestionDeleteView.as_view(), name='question_delete'),
     path('<uuid:assessment_pk>/questions/<uuid:question_pk>/options/', views.QuestionOptionManageView.as_view(), name='question_options'),
     path('<uuid:assessment_pk>/questions/<uuid:question_pk>/options/<uuid:pk>/delete/', views.QuestionOptionDeleteView.as_view(), name='question_option_delete'),
+
+    # DISC Assessment Bank API
+    path('api/disc/bank/', disc_api.DISCBankView.as_view(), name='disc_bank_api'),
+    path('api/disc/templates/', disc_api.DISCTemplatesView.as_view(), name='disc_templates_api'),
 ]
