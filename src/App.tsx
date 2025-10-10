@@ -1,44 +1,27 @@
 import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoginPage } from './components/auth/LoginPage';
 import { RegisterPage } from './components/auth/RegisterPage';
-import { RecruiterDashboard } from './components/recruiter/RecruiterDashboard';
-import { CompanyDashboard } from './components/company/CompanyDashboard';
+import { ROUTES } from './config/routes';
 
-function AppRoutes() {
-  const { user, profile, loading } = useAuth();
-  const [currentPage, setCurrentPage] = React.useState<'login' | 'register'>('login');
+import { DashboardPage } from './pages/dashboard/DashboardPage';
+import { RecruiterDashboardPage } from './pages/recruiting/RecruiterDashboardPage';
+import { CandidatesPage } from './pages/recruiting/CandidatesPage';
+import { JobsPage } from './pages/recruiting/JobsPage';
 
-  React.useEffect(() => {
-    const handleNavigation = () => {
-      const path = window.location.pathname;
-      if (path === '/register') {
-        setCurrentPage('register');
-      } else {
-        setCurrentPage('login');
-      }
-    };
+import { OrganizationsPage, EmployeesPage, DepartmentsPage, OrganizationSettingsPage } from './pages/organizations/OrganizationsPage';
+import { AssessmentsListPage, TemplateLibraryPage, QuestionBankPage } from './pages/assessments/AssessmentsPage';
+import { PDIDashboardPage, PDIPlansListPage } from './pages/pdi/PDIPage';
+import { BillingDashboardPage, InvoicesPage } from './pages/billing/BillingPage';
+import { ReportsDashboardPage, AnalyticsPage } from './pages/reports/ReportsPage';
+import { EmailsDashboardPage, EmailTemplatesPage } from './pages/emails/EmailsPage';
+import { ProfilePage, MyDataPage } from './pages/account/AccountPage';
+import { SystemConfigPage, SuperAdminPage, UserManagementPage } from './pages/admin/AdminPage';
+import { PrivacyPolicyPage, TermsOfServicePage } from './pages/legal/LegalPage';
 
-    handleNavigation();
-    window.addEventListener('popstate', handleNavigation);
-    return () => window.removeEventListener('popstate', handleNavigation);
-  }, []);
-
-  React.useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      const link = target.closest('a');
-      if (link && link.href.startsWith(window.location.origin)) {
-        e.preventDefault();
-        const path = new URL(link.href).pathname;
-        window.history.pushState({}, '', path);
-        window.dispatchEvent(new PopStateEvent('popstate'));
-      }
-    };
-
-    document.addEventListener('click', handleClick);
-    return () => document.removeEventListener('click', handleClick);
-  }, []);
+function PrivateRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -51,33 +34,237 @@ function AppRoutes() {
     );
   }
 
-  if (!user || !profile) {
-    if (currentPage === 'register') {
-      return <RegisterPage />;
-    }
-    return <LoginPage />;
+  if (!user) {
+    return <Navigate to={ROUTES.LOGIN} replace />;
   }
 
-  if (profile.role === 'recruiter') {
-    return <RecruiterDashboard />;
-  }
+  return <>{children}</>;
+}
 
-  if (profile.role === 'company') {
-    return <CompanyDashboard />;
-  }
-
+function AppRoutes() {
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <p className="text-slate-600">Invalid user role</p>
-    </div>
+    <Routes>
+      <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+      <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
+
+      <Route
+        path={ROUTES.DASHBOARD}
+        element={
+          <PrivateRoute>
+            <DashboardPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path={ROUTES.RECRUITING.DASHBOARD}
+        element={
+          <PrivateRoute>
+            <RecruiterDashboardPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path={ROUTES.RECRUITING.CANDIDATES}
+        element={
+          <PrivateRoute>
+            <CandidatesPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path={ROUTES.RECRUITING.JOBS}
+        element={
+          <PrivateRoute>
+            <JobsPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path={ROUTES.ORGANIZATIONS.LIST}
+        element={
+          <PrivateRoute>
+            <OrganizationsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/organizations/:id/employees"
+        element={
+          <PrivateRoute>
+            <EmployeesPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/organizations/:id/departments"
+        element={
+          <PrivateRoute>
+            <DepartmentsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/organizations/:id/settings"
+        element={
+          <PrivateRoute>
+            <OrganizationSettingsPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path={ROUTES.ASSESSMENTS.LIST}
+        element={
+          <PrivateRoute>
+            <AssessmentsListPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path={ROUTES.ASSESSMENTS.TEMPLATE_LIBRARY}
+        element={
+          <PrivateRoute>
+            <TemplateLibraryPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path={ROUTES.ASSESSMENTS.QUESTION_BANK}
+        element={
+          <PrivateRoute>
+            <QuestionBankPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path={ROUTES.PDI.DASHBOARD}
+        element={
+          <PrivateRoute>
+            <PDIDashboardPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path={ROUTES.PDI.LIST}
+        element={
+          <PrivateRoute>
+            <PDIPlansListPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path={ROUTES.BILLING.DASHBOARD}
+        element={
+          <PrivateRoute>
+            <BillingDashboardPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path={ROUTES.BILLING.INVOICES}
+        element={
+          <PrivateRoute>
+            <InvoicesPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path={ROUTES.REPORTS.DASHBOARD}
+        element={
+          <PrivateRoute>
+            <ReportsDashboardPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path={ROUTES.REPORTS.ANALYTICS}
+        element={
+          <PrivateRoute>
+            <AnalyticsPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path={ROUTES.EMAILS.DASHBOARD}
+        element={
+          <PrivateRoute>
+            <EmailsDashboardPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path={ROUTES.EMAILS.TEMPLATES}
+        element={
+          <PrivateRoute>
+            <EmailTemplatesPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path={ROUTES.ACCOUNT.PROFILE}
+        element={
+          <PrivateRoute>
+            <ProfilePage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path={ROUTES.ACCOUNT.MY_DATA}
+        element={
+          <PrivateRoute>
+            <MyDataPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path={ROUTES.ADMIN.SYSTEM_CONFIG}
+        element={
+          <PrivateRoute>
+            <SystemConfigPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path={ROUTES.ADMIN.SUPER_ADMIN}
+        element={
+          <PrivateRoute>
+            <SuperAdminPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path={ROUTES.ADMIN.USER_MANAGEMENT}
+        element={
+          <PrivateRoute>
+            <UserManagementPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route path={ROUTES.LEGAL.PRIVACY} element={<PrivacyPolicyPage />} />
+      <Route path={ROUTES.LEGAL.TERMS} element={<TermsOfServicePage />} />
+
+      <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
+      <Route path="*" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
+    </Routes>
   );
 }
 
 function App() {
   return (
-    <AuthProvider>
-      <AppRoutes />
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

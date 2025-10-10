@@ -2,14 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { Database } from '../../types/database';
-import { Users, Plus, Search, Filter, LogOut, User as UserIcon } from 'lucide-react';
-import { TalentList } from './TalentList';
-import { TalentForm } from './TalentForm';
+import { Users, Search, Filter, User as UserIcon } from 'lucide-react';
+import { TalentList } from '../../components/recruiter/TalentList';
+import { TalentForm } from '../../components/recruiter/TalentForm';
+import { Layout } from '../../components/layout';
 
 type Talent = Database['public']['Tables']['talents']['Row'];
 
-export function RecruiterDashboard() {
-  const { profile, signOut } = useAuth();
+export function RecruiterDashboardPage() {
+  const { profile } = useAuth();
   const [talents, setTalents] = useState<Talent[]>([]);
   const [filteredTalents, setFilteredTalents] = useState<Talent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,39 +72,15 @@ export function RecruiterDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-slate-900 p-2 rounded-lg">
-                <Users className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-slate-900">Talent Manager</h1>
-                <p className="text-sm text-slate-600">Welcome back, {profile?.full_name}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-800 transition-colors"
-              >
-                <Plus className="w-5 h-5" />
-                Add Talent
-              </button>
-              <button
-                onClick={signOut}
-                className="flex items-center gap-2 text-slate-600 hover:text-slate-900 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
+    <Layout>
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-slate-900">Talent Management</h1>
+          <p className="text-slate-600 mt-2">
+            Manage your talent pool and track candidate progress
+          </p>
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl border border-slate-200">
             <div className="flex items-center justify-between mb-2">
@@ -174,14 +151,14 @@ export function RecruiterDashboard() {
             onAddClick={() => setShowAddModal(true)}
           />
         </div>
-      </main>
 
-      {showAddModal && (
-        <TalentForm
-          onClose={() => setShowAddModal(false)}
-          onSuccess={loadTalents}
-        />
-      )}
-    </div>
+        {showAddModal && (
+          <TalentForm
+            onClose={() => setShowAddModal(false)}
+            onSuccess={loadTalents}
+          />
+        )}
+      </div>
+    </Layout>
   );
 }
