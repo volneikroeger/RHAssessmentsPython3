@@ -3,12 +3,14 @@ import { ClipboardCheck, Eye, Send, Plus, Edit, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { AssessmentDefinition, AssessmentInstance } from '../../types/assessments';
 import { InviteModal } from './InviteModal';
+import { CreateAssessmentModal } from './CreateAssessmentModal';
 
 export function AssessmentList() {
   const [definitions, setDefinitions] = useState<AssessmentDefinition[]>([]);
   const [instances, setInstances] = useState<AssessmentInstance[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'definitions' | 'instances'>('definitions');
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -50,9 +52,22 @@ export function AssessmentList() {
 
   return (
     <div>
+      {showCreateModal && (
+        <CreateAssessmentModal
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={() => {
+            loadData();
+            setShowCreateModal(false);
+          }}
+        />
+      )}
+
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Assessments</h2>
-        <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
           <Plus className="h-4 w-4" />
           Create Assessment
         </button>
@@ -98,6 +113,25 @@ export function AssessmentList() {
 
 function DefinitionsList({ definitions, onRefresh }: { definitions: AssessmentDefinition[]; onRefresh: () => void }) {
   const [inviteModalAssessment, setInviteModalAssessment] = useState<AssessmentDefinition | null>(null);
+  const [editModalAssessment, setEditModalAssessment] = useState<AssessmentDefinition | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
+  async function handleDelete(id: string) {
+    try {
+      const { error } = await supabase
+        .from('assessment_definitions')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      onRefresh();
+    } catch (error) {
+      console.error('Error deleting assessment:', error);
+      alert('Failed to delete assessment. It may have associated data.');
+    } finally {
+      setDeleteConfirm(null);
+    }
+  }
 
   if (definitions.length === 0) {
     return (
@@ -119,6 +153,42 @@ function DefinitionsList({ definitions, onRefresh }: { definitions: AssessmentDe
             onRefresh();
           }}
         />
+      )}
+
+      {editModalAssessment && (
+        <CreateAssessmentModal
+          editAssessment={editModalAssessment}
+          onClose={() => setEditModalAssessment(null)}
+          onSuccess={() => {
+            onRefresh();
+            setEditModalAssessment(null);
+          }}
+        />
+      )}
+
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Delete Assessment?</h3>
+            <p className="text-slate-600 mb-6">
+              Are you sure you want to delete this assessment? This action cannot be undone and will remove all associated questions.
+            </p>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="px-4 py-2 text-slate-700 hover:text-slate-900"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(deleteConfirm)}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <div className="space-y-4">
@@ -159,10 +229,18 @@ function DefinitionsList({ definitions, onRefresh }: { definitions: AssessmentDe
               >
                 <Send className="h-4 w-4" />
               </button>
-              <button className="p-2 text-gray-600 hover:text-blue-600" title="Edit">
+              <button
+                onClick={() => setEditModalAssessment(def)}
+                className="p-2 text-gray-600 hover:text-blue-600"
+                title="Edit"
+              >
                 <Edit className="h-4 w-4" />
               </button>
-              <button className="p-2 text-gray-600 hover:text-red-600" title="Delete">
+              <button
+                onClick={() => setDeleteConfirm(def.id)}
+                className="p-2 text-gray-600 hover:text-red-600"
+                title="Delete"
+              >
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
